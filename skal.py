@@ -23,9 +23,11 @@ In file myapp:
 from skal import Skal
 
 class MyApp(SkalApp):
+    @command
     def hello(self):
         print('hello')
 
+    @command
     def yes(self):
         print('yes')
 
@@ -46,6 +48,7 @@ yes
 
 CUSTOM ARGUMENTS
 ================
+Not yet implemented!
 
 #!/bin/env python
 
@@ -60,6 +63,7 @@ class MyApp(Skal):
         '-b': {'help': 'Help for b'}
     }
 
+    @command
     @arguments({
         '-d': {'help': 'Help for d', 'alt': '--delete', 'action': 'store_true'}
     })
@@ -70,6 +74,7 @@ class MyApp(Skal):
             print('deleting')
         print('hello')
 
+    @command
     def yes(self):
         \"\"\"Help for yes
         \"\"\"
@@ -123,6 +128,8 @@ class SkalApp(object):
 
 
 def command(f):
+    """Decorator to tell Skal that the method/function is a command
+    """
     f.skal_command = True
     return f
 
@@ -132,12 +139,12 @@ class MyApp(SkalApp):
     """
 
     @command
-    def test(self):
-        """Test doc."""
+    def test_a(self):
+        """A valid command"""
         print('test output')
 
-    def _test(self):
-        """Test doc."""
+    def test_b(self):
+        """Not a command"""
         print('test output')
 
 
