@@ -82,37 +82,64 @@ if __name__ == '__main__':
 
 """
 
+# TODO: Detect subcommands from another module
+# TODO: Detect subcommands from each module in a package
+# TODO: Create decorators for each subcommand to export
+
+
 import sys
-from argparse import ArgumentParser
+import errno
+import argparse
 import inspect
+import types
 
 
 class SkalApp(object):
     def __init__(self):
-        self.__argparser = ArgumentParser(description = self.__doc__)
+        self.__argparser = argparse.ArgumentParser(description = self.__doc__)
         self.__argparser.add_argument(
                 '--version',
                 action='version',
                 version='%(prog)s 2.0')
-        self.__subparser = self.__argparser.add_subparsers(
-                dest = 'command',
-                help = "Operation mode")
+        self.__subparser = self.__argparser.add_subparsers(dest = 'command')
 
-        # command = self.__subparser.add_parser('ls', help = "List jobs")
-        # command.set_defaults(cmd = cmd.list_jobs)
-
-
-    def run(self):
-        reserved = [name for name, method in inspect.getmembers(SkalApp, inspect.ismethod)]
+        base_methods = inspect.getmembers(SkalApp, inspect.ismethod)
+        reserved = [name for name, method in base_methods]
         for name, method in inspect.getmembers(self.__class__, inspect.ismethod):
             if name not in reserved:
-                method(self)
-                print name
+                if (hasattr(method, 'skal_command')):
+                    command = self.__subparser.add_parser(
+                            name, help = inspect.getdoc(method))
+                    bound_method = types.MethodType(method, self, self.__class__)
+                    command.set_defaults(cmd = bound_method)
+
+    def run(self):
+        self.args = self.__argparser.parse_args()
+        try:
+            if 'cmd' in self.args:
+                return self.args.cmd()
+        except KeyboardInterrupt:
+            return errno.EINTR
+
+
+def command(f):
+    f.skal_command = True
+    return f
 
 
 class MyApp(SkalApp):
+    """Sloppy prototyping class, will do real tests soon
+    """
+
+    @command
     def test(self):
+        """Test doc."""
         print('test output')
+
+    def _test(self):
+        """Test doc."""
+        print('test output')
+
 
 if __name__ == '__main__':
     app = MyApp()
