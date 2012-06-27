@@ -12,83 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-EXAMPLE APP
-===========
 
-In file myapp:
-
-#!/bin/env python
-
-from skal import Skal
-
-class MyApp(SkalApp):
-    @command
-    def hello(self):
-        print('hello')
-
-    @command
-    def yes(self):
-        print('yes')
-
-if __name__ == '__main__':
-    app = MyApp()
-    sys.exit(app.run())
-
-
-USAGE
-=====
-
-> myapp hello
-hello
-
-> myapp yes
-yes
-
-
-CUSTOM ARGUMENTS
-================
-Not yet implemented!
-
-#!/bin/env python
-
-from skal import Skal, arguments
-
-class MyApp(Skal):
-    \"\"\"Application description
-    \"\"\"
-
-    __arguments__ = {
-        '-a': {'help': 'Help for a'},
-        '-b': {'help': 'Help for b'}
-    }
-
-    @command
-    @arguments({
-        '-d': {'help': 'Help for d', 'alt': '--delete', 'action': 'store_true'}
-    })
-    def hello(self):
-        \"\"\"Help for hello
-        \"\"\"
-        if (self.args.delete):
-            print('deleting')
-        print('hello')
-
-    @command
-    def yes(self):
-        \"\"\"Help for yes
-        \"\"\"
-        print('yes')
-
-if __name__ == '__main__':
-    app = MyApp()
-    sys.exit(app.run())
-
-
-"""
-
+# TODO: Implement tests and remove sloppy test class and main
 # TODO: Detect subcommands from another module
 # TODO: Detect subcommands from each module in a package
+# TODO: Don't crash app if a subcommand is broken, just don't add it
 # TODO: Create decorators for each subcommand to export
 
 
@@ -110,7 +38,8 @@ class SkalApp(object):
 
         base_methods = inspect.getmembers(SkalApp, inspect.ismethod)
         reserved = [name for name, method in base_methods]
-        for name, method in inspect.getmembers(self.__class__, inspect.ismethod):
+        methods = inspect.getmembers(self.__class__, inspect.ismethod)
+        for name, method in methods:
             if name not in reserved:
                 if (hasattr(method, 'skal_command')):
                     command = self.__subparser.add_parser(
