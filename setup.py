@@ -12,3 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import skal
+
+
+try:
+    from distutils.core import setup
+except ImportError:
+    from setuptools import setup
+
+
+setup(
+    name = "skal",
+    version = skal.__version__,
+    description = "Class based command line wrapper",
+    author = "Max Persson",
+    author_email = "max@looplab.se",
+    url = "https://github.com/looplab/skal",
+    license = "Apache License 2.0",
+    py_modules = ["skal"],
+    classifiers = [
+        "Development Status :: 2 - Pre-Alpha",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Topic :: Software Development :: User Interfaces",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+)
