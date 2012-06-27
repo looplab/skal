@@ -1,13 +1,13 @@
 Introduction
 ============
 Skal is a wrapper for the argparser library to make it easier to write
-applications that uses the command-subcommand style, much like git or
+applications that uses the command-subcommand style, much like git and
 heroku.
 
 Basic Usage
 ===========
-Skal can be used on three levels: class, module and package. As this project
-is still very young only the class level is implemented as for now.
+Skal can be used on three levels: *class*, *module* and *package*. As this
+project is still very young only the class level is implemented as for now.
 
 In file myapp.py:
 ```python
@@ -29,10 +29,10 @@ if __name__ == '__main__':
 
 Running the small program:
 ```
-> myapp hello
+> python myapp.py hello
 hello
 
-> myapp yes
+> python myapp.py yes
 yes
 ```
 
@@ -40,6 +40,7 @@ Using Custom Arguments
 ======================
 *Note: this is not yet implemented!*
 
+This shows the future usage of custom arguments per subcommand:
 ```python
 from skal import SkalApp, command, arguments
 
@@ -81,12 +82,12 @@ if __name__ == '__main__':
 
 Running it:
 ```
-> myapp -a hello --delete
+> python myapp.py -a hello --delete
 a
 deleting
 hello
 
-> myapp -b yes
+> python myapp.py -b yes
 b
 yes
 ```
