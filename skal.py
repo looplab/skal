@@ -33,26 +33,28 @@ import types
 
 class SkalApp(object):
     def __init__(self):
+        main_module = sys.modules['__main__']
+        version = ''
+        if hasattr(main_module, '__version__'):
+            version = str(main_module.__version__)
+
         self.__argparser = argparse.ArgumentParser(description = self.__doc__)
         self.__argparser.add_argument(
                 '--version',
-                action='version',
-                version='%(prog)s 2.0')
+                action = 'version',
+                version = ('%(prog)s v' + version))
         self.__subparser = self.__argparser.add_subparsers(dest = 'command')
 
-        base_methods = inspect.getmembers(SkalApp, inspect.ismethod)
-        reserved = [name for name, method in base_methods]
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
-            if name not in reserved:
-                if (hasattr(method, 'skal_command')):
-                    command = self.__subparser.add_parser(
-                            name, help = inspect.getdoc(method))
-                    bound_method = types.MethodType(method, self, self.__class__)
-                    command.set_defaults(cmd = bound_method)
+            if (hasattr(method, 'skal_meta')):
+                command = self.__subparser.add_parser(
+                        name, help = inspect.getdoc(method))
+                bound_method = types.MethodType(method, self, self.__class__)
+                command.set_defaults(cmd = bound_method)
 
-    def run(self):
-        self.args = self.__argparser.parse_args()
+    def run(self, args = None):
+        self.args = self.__argparser.parse_args(args = args)
         try:
             if 'cmd' in self.args:
                 return self.args.cmd()
@@ -63,25 +65,6 @@ class SkalApp(object):
 def command(f):
     """Decorator to tell Skal that the method/function is a command
     """
-    f.skal_command = True
+    f.skal_meta = {}
     return f
-
-
-class MyApp(SkalApp):
-    """Sloppy prototyping class, will do real tests soon
-    """
-
-    @command
-    def test_a(self):
-        """A valid command"""
-        print('test output')
-
-    def test_b(self):
-        """Not a command"""
-        print('test output')
-
-
-if __name__ == '__main__':
-    app = MyApp()
-    sys.exit(app.run())
 
