@@ -20,7 +20,7 @@
 # TODO: Create decorators for each subcommand to export
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __project_url__ = "https://github.com/looplab/skal"
 
 
