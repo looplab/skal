@@ -10,7 +10,7 @@ Released on June xxth 2012
 
 - Added this changelog
 - Added test cases
-- Module can't be run as mockup anymore
+- Module can't be run on it's own anymore
 
 Version 0.0.1
 -------------
