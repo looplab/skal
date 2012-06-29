@@ -6,8 +6,9 @@ Here is a full list of changes between each Skal release.
 Version 0.0.3
 -------------
 
-Released on ____ ____ 2012
+Released on June 29th 2012
 
+- Added global arguments
 - Added class documentation
 
 Version 0.0.2
