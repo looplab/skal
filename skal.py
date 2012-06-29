@@ -32,7 +32,29 @@ import types
 
 
 class SkalApp(object):
+    """A base class for command-subcommand apps.
+
+    This class is meant to be used as a base class for the actual application
+    class in which methods are defined that represents the subcommands.
+
+    Consider a simple case:
+    >>> class MyApp(SkalApp):
+    ...     @command
+    ...     def first(self):
+    ...         print("first")
+    ...
+    >>> app = MyApp()
+    >>> app.run()
+
+    This will create a simple app which has one method that is made a command
+    by uisng the @command decorator. If run from the command line it will
+    respond to a call like this: "python myapp.py first"
+
+    """
     def __init__(self):
+        """Creates the argparser using metadata from decorators.
+
+        """
         main_module = sys.modules['__main__']
         version = ''
         if hasattr(main_module, '__version__'):
@@ -54,6 +76,18 @@ class SkalApp(object):
                 command.set_defaults(cmd = bound_method)
 
     def run(self, args = None):
+        """Applicatin starting point.
+
+        This will run the associated method/function/module or print a help
+        list if it's an unknown keyword or the syntax is incorrect.
+
+        The suggested usage is as an argument to sys.exit():
+        >>> sys.exit(app.run())
+
+        Keyword arguments:
+        args -- Custom application arguments (default sys.argv)
+
+        """
         self.args = self.__argparser.parse_args(args = args)
         try:
             if 'cmd' in self.args:
@@ -63,7 +97,8 @@ class SkalApp(object):
 
 
 def command(f):
-    """Decorator to tell Skal that the method/function is a command
+    """Decorator to tell Skal that the method/function is a command.
+
     """
     f.skal_meta = {}
     return f
