@@ -47,14 +47,14 @@ from skal import SkalApp, command, arguments
 class MyApp(SkalApp):
     """Application description""
 
-    __arguments__ = {
+    __skal__ = {
         '-a': {'help': 'Help for a'},
         '-b': {'help': 'Help for b'}
     }
 
     @command
     @arguments({
-        '-d': {'help': 'Help for d', 'alt': '--delete'}
+        ('-d', '--delete'): {'help': 'Help for d'}
     })
     def hello(self):
         """Help line for hello""
@@ -66,6 +66,7 @@ class MyApp(SkalApp):
             print('deleting')
         print('hello')
 
+    @default
     @command
     def yes(self):
         """Help line for yes"""
