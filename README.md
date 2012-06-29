@@ -57,7 +57,7 @@ class MyApp(SkalApp):
         ('-d', '--delete'): {'help': 'Help for d'}
     })
     def hello(self):
-        """Help line for hello""
+        """Help line for hello"""
         if (self.args.a):
             print('a')
         if (self.args.b):
