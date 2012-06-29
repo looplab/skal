@@ -67,7 +67,8 @@ class TestApp(SkalApp):
 def test_valid_command():
     args = ['first']
     TestApp().run(args)
-    assert 'first' in captured_stdout.getvalue(), 'output should be first'
+    assert 'first' in captured_stdout.getvalue(), (
+            'output should be first')
 
 
 @raises(SystemExit)
@@ -88,7 +89,8 @@ def test_decorator_command():
     @command
     def test():
         pass
-    assert hasattr(test, 'skal_meta'), 'function should have Skal metadata'
+    assert hasattr(test, 'skal_meta'), (
+            'function should have Skal metadata')
 
 
 @with_setup(start_capture, stop_capture)
@@ -99,4 +101,5 @@ def test_valid_help_string():
     except SystemExit:
         pass
     docstring = TestApp.first.__doc__
-    assert docstring in captured_stdout.getvalue(), ('output should be "%s"' % docstring)
+    assert docstring in captured_stdout.getvalue(), (
+            'output should be "%s"' % docstring)
