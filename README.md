@@ -45,7 +45,7 @@ This shows the future usage of custom arguments per subcommand:
 from skal import SkalApp, command, arguments
 
 class MyApp(SkalApp):
-    """Application description""
+    """Application description"""
 
     __skal__ = {
         '-a': {'help': 'Help for a'},
