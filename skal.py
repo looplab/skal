@@ -65,8 +65,24 @@ class SkalApp(object):
                 '--version',
                 action = 'version',
                 version = ('%(prog)s v' + version))
-        self.__subparser = self.__argparser.add_subparsers(dest = 'command')
 
+        if hasattr(self.__class__, '__skal__'):
+            for k in self.__class__.__skal__:
+                arg = []
+                if type(k) == str:
+                    arg.append(k)
+                elif type(k) == tuple:
+                    short, full = k
+                    if type(short) == str:
+                        arg.append(short)
+                    if type(full) == str:
+                        arg.append(full)
+                options = self.__class__.__skal__[k]
+                self.__argparser.add_argument(*arg, **options)
+
+
+        # Add all subcommands by introspection
+        self.__subparser = self.__argparser.add_subparsers(dest = 'command')
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
             if (hasattr(method, 'skal_meta')):
