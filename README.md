@@ -38,31 +38,31 @@ yes
 
 Using Custom Arguments
 ======================
-*Note: this is not yet implemented!*
+This shows the usage of custom arguments per subcommand:
 
-This shows the future usage of custom arguments per subcommand:
+*Note that @default decorator is not yet implemented!*
+
 ```python
-from skal import SkalApp, command, arguments
+from skal import SkalApp, command, default
 
 class MyApp(SkalApp):
-    """Application description"""
+    """Help line for application"""
 
-    __skal__ = {
-        '-a': {'help': 'Help for a'},
-        '-b': {'help': 'Help for b'}
+    __args__ = {
+        '-a': {'help': 'Help for a', 'action': 'store_true'},
+        '-b': {'help': 'Help for b', 'action': 'store_true'}
     }
 
-    @command
-    @arguments({
-        ('-d', '--delete'): {'help': 'Help for d'}
+    @command({
+        ('-d', '--delete'): {'help': 'Help for d', 'action': 'store_true'}
     })
     def hello(self):
         """Help line for hello"""
-        if (self.args.a):
+        if self.args.a:
             print('a')
-        if (self.args.b):
+        if self.args.b:
             print('b')
-        if (self.args.delete):
+        if self.args.delete:
             print('deleting')
         print('hello')
 
@@ -70,9 +70,9 @@ class MyApp(SkalApp):
     @command
     def yes(self):
         """Help line for yes"""
-        if (self.args.a):
+        if self.args.a:
             print('a')
-        if (self.args.b):
+        if self.args.b:
             print('b')
         print('yes')
 
