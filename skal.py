@@ -13,14 +13,7 @@
 # limitations under the License.
 
 
-# TODO: Implement tests and remove sloppy test class and main
-# TODO: Detect subcommands from another module
-# TODO: Detect subcommands from each module in a package
-# TODO: Don't crash app if a subcommand is broken, just don't add it
-# TODO: Create decorators for each subcommand to export
-
-
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -60,36 +53,28 @@ class SkalApp(object):
         if hasattr(main_module, '__version__'):
             version = str(main_module.__version__)
 
+        # Add main parser and help
         self.__argparser = argparse.ArgumentParser(description = self.__doc__)
         self.__argparser.add_argument(
                 '--version',
                 action = 'version',
                 version = ('%(prog)s v' + version))
 
-        if hasattr(self.__class__, '__skal__'):
-            for k in self.__class__.__skal__:
-                arg = []
-                if type(k) == str:
-                    arg.append(k)
-                elif type(k) == tuple:
-                    short, full = k
-                    if type(short) == str:
-                        arg.append(short)
-                    if type(full) == str:
-                        arg.append(full)
-                options = self.__class__.__skal__[k]
-                self.__argparser.add_argument(*arg, **options)
-
+        # Add all global arguments from the __args__ dictionary
+        if hasattr(self.__class__, '__args__'):
+            _add_arguments(self.__class__.__args__, self.__argparser)
 
         # Add all subcommands by introspection
         self.__subparser = self.__argparser.add_subparsers(dest = 'command')
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
-            if (hasattr(method, 'skal_meta')):
+            if (hasattr(method, '_args')):
                 command = self.__subparser.add_parser(
                         name, help = inspect.getdoc(method))
+                _add_arguments(method._args, command)
                 bound_method = types.MethodType(method, self, self.__class__)
                 command.set_defaults(cmd = bound_method)
+
 
     def run(self, args = None):
         """Applicatin starting point.
@@ -112,10 +97,37 @@ class SkalApp(object):
             return errno.EINTR
 
 
-def command(f):
+def command(func_or_args = None):
     """Decorator to tell Skal that the method/function is a command.
 
     """
-    f.skal_meta = {}
-    return f
+    def decorator(f):
+        f._args = args
+        return f
+    if type(func_or_args) == type(decorator):
+        args = {}
+        return decorator(func_or_args)
+    args = func_or_args
+    return decorator
 
+
+def default():
+    """Decorator to tell Skal that the method/function is the default.
+
+    """
+    raise NotImplementedError
+
+
+def _add_arguments(args, argparser):
+    for k in args:
+        arg = []
+        if type(k) == str:
+            arg.append(k)
+        elif type(k) == tuple:
+            short, full = k
+            if type(short) == str:
+                arg.append(short)
+            if type(full) == str:
+                arg.append(full)
+        options = args[k]
+        argparser.add_argument(*arg, **options)

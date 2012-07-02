@@ -29,7 +29,7 @@ real_stderr = None
 captured_stdout = None
 captured_stderr = None
 
-debug_output = True
+debug_output = False
 
 
 def start_capture():
@@ -60,8 +60,9 @@ def stop_capture():
 
 
 class TestApp(SkalApp):
+    """main help string"""
 
-    __skal__ = {
+    __args__ = {
         '-b': {'help': 'bool argument', 'action': 'store_true'},
         ('-s', '--string'): {'help': 'string argument with long name'}
     }
@@ -79,18 +80,72 @@ class TestApp(SkalApp):
         """second command"""
         print('second')
 
+    @command({
+        '-i': {'help': 'bool argument', 'action': 'store_true'},
+        ('-t', '--test'): {'help': 'string argument with long name'}
+    })
+    def third(self):
+        """third command"""
+        print('third')
+        if self.args.i:
+            print('i')
+        if self.args.test:
+            print(self.args.test)
+
 
 # --- Test cases --------------------------------------------------------------
 
 
 # Decorator tests
 
-def test_decorator_command():
+def test_decorator():
     @command
     def test():
         pass
-    assert hasattr(test, 'skal_meta'), (
-            'function should have Skal metadata')
+    assert hasattr(test, '_args'), (
+            'function should have metadata')
+
+
+def test_decorator_with_string_argument():
+    @command({
+        '-t': {}
+    })
+    def test():
+        pass
+    assert hasattr(test, '_args'), (
+            'function should have metadata')
+    assert '-t' in test._args, (
+            'metadata should have "-t" key')
+    assert test._args['-t'] == {}, (
+            'value of metadata "-t" should be a dict')
+
+
+def test_decorator_with_tuple_argument():
+    @command({
+        ('-t', '--test'): {}
+    })
+    def test():
+        pass
+    assert hasattr(test, '_args'), (
+            'function should have metadata')
+    assert ('-t', '--test') in test._args, (
+            'metadata should have ("-t", "--test") key')
+    assert test._args[('-t', '--test')] == {}, (
+            'metadata of ("-t", "--test") should be a dict')
+
+
+# Global tests
+
+@with_setup(start_capture, stop_capture)
+def test_global_help():
+    args = ['-h']
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    doc = TestApp.__doc__
+    assert doc in captured_stdout.getvalue(), (
+            'help string should be "%s"' % doc)
 
 
 # Command tests
@@ -126,7 +181,7 @@ def test_command_without_decorator():
 @raises(SystemExit)
 @with_setup(start_capture, stop_capture)
 def test_invalid_command():
-    args = ['third']
+    args = ['other']
     TestApp().run(args)
 
 
@@ -139,31 +194,33 @@ def test_global_argument_existance():
         TestApp().run(args)
     except SystemExit:
         pass
-    arg = 'b'
+    arg = '-b'
     assert arg in captured_stdout.getvalue(), (
-            'help should contain variable "%s"' % arg)
+            'help should list argument "%s"' % arg)
 
 
 @with_setup(start_capture, stop_capture)
 def test_global_argument_help():
+    # TODO: fix this test
     args = ['-h']
     try:
         TestApp().run(args)
     except SystemExit:
         pass
-    arg = 'b'
-    assert arg in captured_stdout.getvalue(), (
-            'help should contain variable "%s"' % arg)
+    arg = '-b'
+    doc = 'bool argument'
+    assert doc in captured_stdout.getvalue(), (
+            'help string for "%s" should be "%s"' % (arg, doc))
 
 
 @with_setup(start_capture, stop_capture)
 def test_global_argument_value_bool():
+    value = 'b'
     args = ['-b', 'first']
     try:
         TestApp().run(args)
     except SystemExit:
         pass
-    value = 'b'
     assert value in captured_stdout.getvalue(), (
             'output should contain "%s"' % value)
 
@@ -185,6 +242,72 @@ def test_global_argument_value_bool_and_string():
     value1 = 'b'
     value2 = 'test'
     args = ['-b', '--string='+value2, 'first']
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    assert value1 in captured_stdout.getvalue(), (
+            'output should contain "%s"' % value1)
+    assert value2 in captured_stdout.getvalue(), (
+            'output should contain "%s"' % value2)
+
+
+# Command argument tests
+
+@with_setup(start_capture, stop_capture)
+def test_argument_existance():
+    args = ['third', '-h']
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    arg = '-i'
+    assert arg in captured_stdout.getvalue(), (
+            'help should list argument "%s"' % arg)
+
+
+@with_setup(start_capture, stop_capture)
+def test_argument_help():
+    args = ['third', '-h']
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    arg = '-b'
+    doc = 'bool argument'
+    assert doc in captured_stdout.getvalue(), (
+            'help string for "%s" should be "%s"' % (arg, doc))
+
+
+@with_setup(start_capture, stop_capture)
+def test_argument_value_bool():
+    value = 'i'
+    args = ['third', '-i']
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    assert value in captured_stdout.getvalue(), (
+            'output should contain "%s"' % value)
+
+
+@with_setup(start_capture, stop_capture)
+def test_argument_value_string():
+    value = 'test'
+    args = ['third', '--test='+value]
+    try:
+        TestApp().run(args)
+    except SystemExit:
+        pass
+    assert value in captured_stdout.getvalue(), (
+            'output should contain "%s"' % value)
+
+
+@with_setup(start_capture, stop_capture)
+def test_argument_value_bool_and_string():
+    value1 = 'i'
+    value2 = 'test'
+    args = ['third', '-i', '--test='+value2]
     try:
         TestApp().run(args)
     except SystemExit:
