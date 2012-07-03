@@ -18,8 +18,8 @@ import StringIO
 
 
 class OutputCapture(object):
-    def __init__(self):
-        self.debug_output = False
+    def __init__(self, debug = False):
+        self.debug = debug
 
     def start(self):
         self.old_stdout = sys.stdout
@@ -32,7 +32,7 @@ class OutputCapture(object):
     def stop(self):
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
-        if self.debug_output:
+        if self.debug:
             if self.stdout.getvalue() != "":
                 print('\nStdout:\n%s' % self.stdout.getvalue())
             if self.stderr.getvalue() != "":

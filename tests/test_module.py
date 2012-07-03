@@ -20,7 +20,7 @@ from helpers import OutputCapture
 from skal import SkalApp, command
 
 
-capture = OutputCapture()
+capture = OutputCapture(debug = False)
 
 
 # --- Test cases --------------------------------------------------------------

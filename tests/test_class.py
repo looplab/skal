@@ -24,7 +24,7 @@ from skal import SkalApp, command
 __version__ = '0.1'
 
 
-capture = OutputCapture()
+capture = OutputCapture(debug = False)
 
 
 # --- Skal test class ---------------------------------------------------------
@@ -124,8 +124,15 @@ def test_global_help():
             'help string should be "%s"' % doc)
 
 
-def test_version_output():
-    pass
+@with_setup(capture.start, capture.stop)
+def test_global_version():
+    args = ['--version']
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert str(__version__) in capture.stderr.getvalue(), (
+            'version should be "%s"' % __version__)
 
 
 def test_keyboard_interrupt():
