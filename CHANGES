@@ -4,6 +4,15 @@ Skal Changelog
 Here is a full list of changes between each Skal release.
 
 
+Version 0.1.0
+-------------
+
+Released on XXX
+
+- First major release of Skal
+- Updated setup to use a cfg file, this is also used for tests
+
+
 Version 0.0.4
 -------------
 
