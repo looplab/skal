@@ -4,10 +4,20 @@ Skal Changelog
 Here is a full list of changes between each Skal release.
 
 
+Version 0.1.1
+-------------
+
+Released on XXXX XXX 2012
+
+- Added elaborate test cases for testing class, module and package versions
+- Added better handling of version flag
+- Moved output capture for testing to a separate utility class
+
+
 Version 0.1.0
 -------------
 
-Released on XXX
+Released on July 3rd 2012
 
 - First major release of Skal
 - Updated setup to use a cfg file, this is also used for tests
