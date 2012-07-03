@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -48,17 +48,16 @@ class SkalApp(object):
         """Creates the argparser using metadata from decorators.
 
         """
-        main_module = sys.modules['__main__']
-        version = ''
-        if hasattr(main_module, '__version__'):
-            version = str(main_module.__version__)
-
         # Add main parser and help
         self.__argparser = argparse.ArgumentParser(description = self.__doc__)
-        self.__argparser.add_argument(
-                '--version',
-                action = 'version',
-                version = ('%(prog)s v' + version))
+
+        # Add the version flag if a version is defined
+        main_module = sys.modules[self.__class__.__module__]
+        if hasattr(main_module, '__version__'):
+            self.__argparser.add_argument(
+                    '--version',
+                    action = 'version',
+                    version = ('%(prog)s v' + str(main_module.__version__)))
 
         # Add all global arguments from the __args__ dictionary
         if hasattr(self.__class__, '__args__'):
