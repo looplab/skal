@@ -17,11 +17,48 @@ from nose.tools import raises, with_setup
 
 from helpers import OutputCapture
 
-from skal import SkalApp, command
+from skal import SkalApp
 
 
-capture = OutputCapture(debug = False)
+capture = OutputCapture(debug = True)
 
 
 # --- Test cases --------------------------------------------------------------
 
+
+# Command tests
+
+@with_setup(capture.start, capture.stop)
+def test_command_existance():
+    value = 'first'
+    args = [value]
+    SkalApp(modules = ['skalmodule']).run(args)
+    assert value in capture.stdout.getvalue(), (
+            'output should contain "%s"' % value)
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_help():
+    args = ['-h']
+    try:
+        SkalApp(modules = ['skalmodule']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    import skalmodule
+    doc = skalmodule.first.__doc__
+    assert doc in capture.stdout.getvalue(), (
+            'help string should be "%s"' % doc)
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_command_without_decorator():
+    args = ['second']
+    SkalApp(modules = ['skalmodule']).run(args)
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_invalid_command():
+    args = ['other']
+    SkalApp(modules = ['skalmodule']).run(args)

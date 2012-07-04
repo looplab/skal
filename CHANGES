@@ -12,6 +12,7 @@ Released on XXXX XXX 2012
 - Added elaborate test cases for testing class, module and package versions
 - Added better handling of version flag
 - Moved output capture for testing to a separate utility class
+- Added module introspection for functions and global args
 
 
 Version 0.1.0

@@ -44,7 +44,7 @@ class SkalApp(object):
     respond to a call like this: "python myapp.py first"
 
     """
-    def __init__(self):
+    def __init__(self, modules = []):
         """Creates the argparser using metadata from decorators.
 
         """
@@ -59,20 +59,25 @@ class SkalApp(object):
                     action = 'version',
                     version = ('%(prog)s v' + str(main_module.__version__)))
 
-        # Add all global arguments from the __args__ dictionary
+        # Add all class arguments from the __args__ dictionary
         if hasattr(self.__class__, '__args__'):
             _add_arguments(self.__class__.__args__, self.__argparser)
 
-        # Add all subcommands by introspection
+        # Add all class commands by introspection
         self.__subparser = self.__argparser.add_subparsers(dest = 'command')
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
-            if (hasattr(method, '_args')):
-                command = self.__subparser.add_parser(
-                        name, help = inspect.getdoc(method))
-                _add_arguments(method._args, command)
-                bound_method = types.MethodType(method, self, self.__class__)
-                command.set_defaults(cmd = bound_method)
+            bound_method = types.MethodType(method, self, self.__class__)
+            _add_parser(name, bound_method, self.__subparser)
+
+        # Add all module commands by introspection
+        for name in modules:
+            module = __import__(name)
+            if hasattr(module, '__args__'):
+                _add_arguments(module.__args__, self.__argparser)
+            functions = inspect.getmembers(module, inspect.isfunction)
+            for name, function in functions:
+                _add_parser(name, function, self.__subparser)
 
 
     def run(self, args = None):
@@ -91,6 +96,8 @@ class SkalApp(object):
         self.args = self.__argparser.parse_args(args = args)
         try:
             if 'cmd' in self.args:
+                if inspect.isfunction(self.args.cmd):
+                    return self.args.cmd(args = self.args)
                 return self.args.cmd()
         except KeyboardInterrupt:
             return errno.EINTR
@@ -115,6 +122,15 @@ def default():
 
     """
     raise NotImplementedError
+
+
+def _add_parser(name, function, parent_parser):
+    if hasattr(function, '_args'):
+        parser = parent_parser.add_parser(
+                name, help = inspect.getdoc(function))
+        _add_arguments(function._args, parser)
+        parser.set_defaults(cmd = function)
+        return parser
 
 
 def _add_arguments(args, argparser):
