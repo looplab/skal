@@ -72,7 +72,13 @@ class SkalApp(object):
 
         # Add all module commands by introspection
         for name in modules:
-            module = __import__(name)
+            try:
+                module = __import__(name)
+            except SyntaxError as e:
+                sys.stderr.write('Warning: skipping commands from module "%s"\n' % e.filename)
+                sys.stderr.write(e)
+                sys.stderr.write('\n')
+                break
             if hasattr(module, '__args__'):
                 _add_arguments(module.__args__, self.__argparser)
             functions = inspect.getmembers(module, inspect.isfunction)
