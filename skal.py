@@ -92,21 +92,18 @@ class SkalApp(object):
         This will run the associated method/function/module or print a help
         list if it's an unknown keyword or the syntax is incorrect.
 
-        The suggested usage is as an argument to sys.exit():
-        >>> sys.exit(app.run())
+        The suggested usage is:
+        >>> SkalApp().run()
 
         Keyword arguments:
         args -- Custom application arguments (default sys.argv)
 
         """
         self.args = self.__argparser.parse_args(args = args)
-        try:
-            if 'cmd' in self.args:
-                if inspect.isfunction(self.args.cmd):
-                    return self.args.cmd(args = self.args)
-                return self.args.cmd()
-        except KeyboardInterrupt:
-            return errno.EINTR
+        if 'cmd' in self.args:
+            if inspect.isfunction(self.args.cmd):
+                self.args.cmd(args = self.args)
+            self.args.cmd()
 
 
 def command(func_or_args = None):
