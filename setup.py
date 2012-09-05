@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import skal
+from setuptools import setup
 
-
-try:
-    from distutils.core import setup
-except ImportError:
-    from setuptools import setup
-
+from skal import __version__
 
 setup(
     name = "skal",
-    version = skal.__version__,
+    version = __version__,
     description = "Class based command line wrapper",
     author = "Max Persson",
     author_email = "max@looplab.se",
