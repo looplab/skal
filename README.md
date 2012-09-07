@@ -1,13 +1,20 @@
 Introduction
 ============
 Skal is a wrapper for the argparser library to make it easier to write
-applications that uses the command-subcommand style, much like git and
-heroku.
+applications that uses commands with subcommands, much like git and
+heroku does.
 
-Basic Usage
-===========
-Skal can be used on three levels: *class*, *module* and *package*. As this
-project is still very young only the class level is implemented as for now.
+Skal can be used with different combinations of command sources; a subclass of
+SkalApp, any number of modules and any number of packages. Currently usage with
+classes and modules are supported.
+
+The test cases are a good source of different ways to use Skal appart
+from what is described here.
+
+Subclass as command source
+==========================
+A custom subclass of SkalApp is one way to get some commands added, and
+may be the shortest version.
 
 In file myapp.py:
 ```python
@@ -23,11 +30,10 @@ class MyApp(SkalApp):
         print('yes')
 
 if __name__ == '__main__':
-    app = MyApp()
-    sys.exit(app.run())
+    MyApp().run()
 ```
 
-Running the small program:
+Running the program:
 ```
 > python myapp.py hello
 hello
@@ -36,12 +42,69 @@ hello
 yes
 ```
 
-Using Custom Arguments
+Modules as command source
+=========================
+There are two ways in which modules can be used to source commands;
+either as a flat hirearchy where every function in every module gets
+added or with a bit of hirearchy where each module becomes a command and
+its functions becomes subcommands. Using either is determined by how the
+module names are passed to the SkalApp constructor, and any combination
+is also valid. The only advice is to specify a overridden version and
+description string for the whole app, as Skal wouldn't otherwise know
+where to get that information from. When using only modules there is no
+need to override the SkalApp class.
+
+First a module called do.py:
+```python
+from skal import command
+
+@command
+def hello(self):
+    print('hello')
+
+@command
+def yes(self):
+    print('yes')
+```
+
+Using do.py as plain commands in myapp.py:
+```
+from skal import SkalApp
+
+if __name__ == '__main__':
+    SkalApp(command_modules = ['do']).run()
+```
+
+Running the program:
+```
+> python myapp.py hello
+hello
+
+> python myapp.py yes
+yes
+```
+
+Using do.py as a subcommand in myapp.py:
+```
+from skal import SkalApp
+
+if __name__ == '__main__':
+    SkalApp(subcommand_modules = ['do']).run()
+```
+
+Running the program:
+```
+> python myapp.py do hello
+hello
+
+> python myapp.py do yes
+yes
+```
+
+Per Command Arguments
 ======================
-This shows the usage of custom arguments per subcommand:
-
-*Note that @default decorator is not yet implemented!*
-
+This shows the usage of custom arguments per command. This works for all
+supported command sources, not only classes.
 ```python
 from skal import SkalApp, command, default
 
@@ -66,7 +129,6 @@ class MyApp(SkalApp):
             print('deleting')
         print('hello')
 
-    @default
     @command
     def yes(self):
         """Help line for yes"""
