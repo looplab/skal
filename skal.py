@@ -13,12 +13,11 @@
 # limitations under the License.
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
 import sys
-import errno
 import argparse
 import inspect
 import types
@@ -27,63 +26,95 @@ import types
 class SkalApp(object):
     """A base class for command-subcommand apps.
 
-    This class is meant to be used as a base class for the actual application
-    class in which methods are defined that represents the subcommands.
+    This class is meant to be used either as a base class for a complete
+    application or on its own loading the application commands from modules and
+    packages. See README.md for usage info.
 
-    Consider a simple case:
-    >>> class MyApp(SkalApp):
-    ...     @command
-    ...     def first(self):
-    ...         print("first")
-    ...
-    >>> app = MyApp()
-    >>> app.run()
-
-    This will create a simple app which has one method that is made a command
-    by uisng the @command decorator. If run from the command line it will
-    respond to a call like this: "python myapp.py first"
+    Keyword arguments:
+    description        -- The main help text, if None the subclass docstring
+    command_modules    -- List, functions from each module will be subcommands
+    subcommand_modules -- List, each module will be a subcommand
 
     """
-    def __init__(self, modules = []):
+    def __init__(self,
+            description = None,
+            version = None,
+            command_modules = [],
+            subcommand_modules = []):
         """Creates the argparser using metadata from decorators.
 
         """
-        # Add main parser and help
-        self.__argparser = argparse.ArgumentParser(description = self.__doc__)
+        # Get the application description
+        # TODO: Set the doc to none and warn if we are not a subclass and no
+        # other description is given
+        if self.__class__ is SkalApp:
+            if description:
+                description = inspect.cleandoc(description)
+        else:
+            description = inspect.getdoc(self)
+            # Add the version flag if a version is defined
+            main_module = sys.modules[self.__class__.__module__]
+            if hasattr(main_module, '__version__'):
+                version = str(main_module.__version__)
+        if not description:
+            sys.stderr.write('Warning: no documentation is defined \n')
 
-        # Add the version flag if a version is defined
-        main_module = sys.modules[self.__class__.__module__]
-        if hasattr(main_module, '__version__'):
-            self.__argparser.add_argument(
+        # Add the main parser
+        self.__parser = argparse.ArgumentParser(
+                description = description,
+                formatter_class=argparse.RawDescriptionHelpFormatter)
+
+        # Add a version if there was one
+        if version:
+            self.__parser.add_argument(
                     '--version',
                     action = 'version',
-                    version = ('%(prog)s v' + str(main_module.__version__)))
+                    version = ('%(prog)s v' + version))
+        else:
+            sys.stderr.write('Warning: no version is defined \n')
 
-        # Add all class arguments from the __args__ dictionary
+        # Add main subcommand parser
+        self.__subparsers = self.__parser.add_subparsers(dest = 'command')
+
+        # Add all class arguments and commands
         if hasattr(self.__class__, '__args__'):
-            _add_arguments(self.__class__.__args__, self.__argparser)
-
-        # Add all class commands by introspection
-        self.__subparser = self.__argparser.add_subparsers(dest = 'command')
+            _add_arguments(self.__class__.__args__, self.__parser)
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
             bound_method = types.MethodType(method, self, self.__class__)
-            _add_parser(name, bound_method, self.__subparser)
+            _add_parser(name, bound_method, self.__subparsers)
 
-        # Add all module commands by introspection
-        for name in modules:
+        # Add all module arguments and functions as commands
+        for name in command_modules:
             try:
                 module = __import__(name)
             except SyntaxError as e:
-                sys.stderr.write('Warning: skipping commands from module "%s"\n' % e.filename)
+                sys.stderr.write('Warning: skipping module "%s"\n' % e.filename)
                 sys.stderr.write(e)
                 sys.stderr.write('\n')
                 break
             if hasattr(module, '__args__'):
-                _add_arguments(module.__args__, self.__argparser)
+                _add_arguments(module.__args__, self.__parser)
             functions = inspect.getmembers(module, inspect.isfunction)
             for name, function in functions:
-                _add_parser(name, function, self.__subparser)
+                _add_parser(name, function, self.__subparsers)
+
+        # Add all module arguments and functions as sub commands
+        for name in subcommand_modules:
+            try:
+                module = __import__(name)
+            except SyntaxError as e:
+                sys.stderr.write('Warning: skipping module "%s"\n' % e.filename)
+                sys.stderr.write(e)
+                sys.stderr.write('\n')
+                break
+            module_subparser, module_subparsers = _add_subparsers(
+                    name, module, self.__subparsers)
+            if hasattr(module, '__args__'):
+                _add_arguments(module.__args__, module_subparser)
+            functions = inspect.getmembers(module, inspect.isfunction)
+            for name, function in functions:
+                _add_parser(name, function, module_subparsers)
 
 
     def run(self, args = None):
@@ -92,18 +123,16 @@ class SkalApp(object):
         This will run the associated method/function/module or print a help
         list if it's an unknown keyword or the syntax is incorrect.
 
-        The suggested usage is:
-        >>> SkalApp().run()
-
         Keyword arguments:
         args -- Custom application arguments (default sys.argv)
 
         """
-        self.args = self.__argparser.parse_args(args = args)
+        self.args = self.__parser.parse_args(args = args)
         if 'cmd' in self.args:
             if inspect.isfunction(self.args.cmd):
                 self.args.cmd(args = self.args)
-            self.args.cmd()
+            else:
+                self.args.cmd()
 
 
 def command(func_or_args = None):
@@ -111,7 +140,7 @@ def command(func_or_args = None):
 
     """
     def decorator(f):
-        f._args = args
+        f.__args__ = args
         return f
     if type(func_or_args) == type(decorator):
         args = {}
@@ -120,7 +149,7 @@ def command(func_or_args = None):
     return decorator
 
 
-def default():
+def default(f):
     """Decorator to tell Skal that the method/function is the default.
 
     """
@@ -128,12 +157,28 @@ def default():
 
 
 def _add_parser(name, function, parent_parser):
-    if hasattr(function, '_args'):
+    if hasattr(function, '__args__'):
+        longhelp = inspect.getdoc(function)
+        shorthelp = longhelp.split('\n')[0]
         parser = parent_parser.add_parser(
-                name, help = inspect.getdoc(function))
-        _add_arguments(function._args, parser)
+                name,
+                description = longhelp,
+                help = shorthelp)
+        _add_arguments(function.__args__, parser)
         parser.set_defaults(cmd = function)
         return parser
+
+
+def _add_subparsers(name, module, parent_parser):
+    longhelp = inspect.getdoc(module)
+    shorthelp = longhelp.split('\n')[0]
+    subparser = parent_parser.add_parser(
+            name,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description = longhelp,
+            help = shorthelp)
+    subparsers = subparser.add_subparsers(dest = 'sub_command')
+    return subparser, subparsers
 
 
 def _add_arguments(args, argparser):
