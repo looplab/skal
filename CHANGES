@@ -1,7 +1,17 @@
 Skal Changelog
 ==============
 
-Here is a full list of changes between each Skal release.
+Skal follows the Semantic Versioning standard, although not for development
+before version 1. Read more at http://semvar.org
+
+
+Version 0.1.2
+-------------
+
+Released on September 7th 2012
+
+- Changed the class init to accept command modules AND subcommand modules
+- Added override for description and version in SkalApp constructor
 
 
 Version 0.1.1
