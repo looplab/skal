@@ -1,4 +1,7 @@
-"""main help string"""
+"""main help string
+
+more help here
+"""
 
 
 from skal import command

@@ -14,16 +14,46 @@
 
 
 from nose.tools import raises, with_setup
-
+import inspect
 from helpers import OutputCapture
-
 from skal import SkalApp
 
 
-capture = OutputCapture(debug = True)
+capture = OutputCapture(debug = False)
+module = 'skalmodule'
 
 
 # --- Test cases --------------------------------------------------------------
+
+
+# Global tests
+
+@with_setup(capture.start, capture.stop)
+def test_help():
+    args = ['-h']
+    doc = """main help string
+
+    more help here
+    """
+    try:
+        SkalApp(command_modules = [module], description = doc).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    doc = inspect.cleandoc(doc)
+    assert doc in capture.stdout.getvalue(), (
+            'help string should be "%s"' % doc)
+
+
+@with_setup(capture.start, capture.stop)
+def test_version():
+    args = ['--version']
+    version = '0.5.2'
+    try:
+        SkalApp(command_modules = [module], version = version).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert version in capture.stderr.getvalue(), (
+            'version should be "%s"' % version)
 
 
 # Command tests
@@ -32,20 +62,20 @@ capture = OutputCapture(debug = True)
 def test_command_existance():
     value = 'first'
     args = [value]
-    SkalApp(modules = ['skalmodule']).run(args)
+    SkalApp(command_modules = [module]).run(args)
     assert value in capture.stdout.getvalue(), (
             'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
 def test_command_help():
-    args = ['-h']
+    args = ['first', '-h']
     try:
-        SkalApp(modules = ['skalmodule']).run(args)
+        SkalApp(command_modules = [module]).run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     import skalmodule
-    doc = skalmodule.first.__doc__
+    doc = inspect.getdoc(skalmodule.first)
     assert doc in capture.stdout.getvalue(), (
             'help string should be "%s"' % doc)
 
@@ -54,11 +84,84 @@ def test_command_help():
 @with_setup(capture.start, capture.stop)
 def test_command_without_decorator():
     args = ['second']
-    SkalApp(modules = ['skalmodule']).run(args)
+    SkalApp(command_modules = [module]).run(args)
 
 
 @raises(SystemExit)
 @with_setup(capture.start, capture.stop)
-def test_invalid_command():
+def test_command_non_existing():
     args = ['other']
-    SkalApp(modules = ['skalmodule']).run(args)
+    SkalApp(command_modules = [module]).run(args)
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_syntax_error():
+    args = ['-h']
+    try:
+        SkalApp(command_modules = ['skalmodule_error']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'skipping module' in capture.stderr.getvalue(), (
+            'syntax errors should be found')
+
+
+# Subcommand tests
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_existance():
+    value = 'first'
+    args = [module, value]
+    SkalApp(subcommand_modules = [module]).run(args)
+    assert value in capture.stdout.getvalue(), (
+            'output should contain "%s"' % value)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_help():
+    args = [module, '-h']
+    try:
+        SkalApp(subcommand_modules = [module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    import skalmodule
+    doc = inspect.getdoc(skalmodule)
+    assert doc in capture.stdout.getvalue(), (
+            'help string should be "%s"' % doc)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_help():
+    args = [module, '-h']
+    try:
+        SkalApp(subcommand_modules = [module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    import skalmodule
+    doc = inspect.getdoc(skalmodule)
+    assert doc in capture.stdout.getvalue(), (
+            'help string should be "%s"' % doc)
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_subcommand_without_decorator():
+    args = [module, 'second']
+    SkalApp(subcommand_modules = [module]).run(args)
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_subcommand_invalid_command():
+    args = [module, 'other']
+    SkalApp(subcommand_modules = [module]).run(args)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_syntax_error():
+    args = ['-h']
+    try:
+        SkalApp(subcommand_modules = ['skalmodule_error']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'skipping module' in capture.stderr.getvalue(), (
+            'syntax errors should be found')
