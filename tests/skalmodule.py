@@ -42,6 +42,11 @@ def third(args):
 
 
 @command
+def no_doc(args):
+    print('there are no docs for this function')
+
+
+@command
 def ctrlc(args):
     """ctrl c test"""
     raise KeyboardInterrupt

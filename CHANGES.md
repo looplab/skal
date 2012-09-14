@@ -5,6 +5,15 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.3
+-------------
+
+Released on September 14th 2012
+
+- Fixed bug when no documentation was defined for a function
+- Code is now completely PEP8 comliant
+
+
 Version 0.1.2
 -------------
 

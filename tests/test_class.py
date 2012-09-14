@@ -1,11 +1,11 @@
 # Copyright 2012 Loop Lab
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,7 @@ import skalclass
 from skalclass import TestApp
 
 
-capture = OutputCapture(debug = False)
+capture = OutputCapture(debug=False)
 
 
 # --- Test cases --------------------------------------------------------------
@@ -37,7 +37,7 @@ def test_override_help():
         assert e.code == 0, 'exit code should be 0'
     doc = inspect.getdoc(TestApp)
     assert doc in capture.stdout.getvalue(), (
-            'help string should be "%s"' % doc)
+        'help string should be "%s"' % doc)
 
 
 @with_setup(capture.start, capture.stop)
@@ -49,7 +49,7 @@ def test_override_version():
         assert e.code == 0, 'exit code should be 0'
     version = str(skalclass.__version__)
     assert version in capture.stderr.getvalue(), (
-            'version should be "%s"' % version)
+        'version should be "%s"' % version)
 
 
 # Argument tests
@@ -63,7 +63,7 @@ def test_argument_existance():
         assert e.code == 0, 'exit code should be 0'
     arg = '-b'
     assert arg in capture.stdout.getvalue(), (
-            'help should list argument "%s"' % arg)
+        'help should list argument "%s"' % arg)
 
 
 @with_setup(capture.start, capture.stop)
@@ -77,7 +77,7 @@ def test_argument_help():
     arg = '-b'
     doc = 'bool argument'
     assert doc in capture.stdout.getvalue(), (
-            'help string for "%s" should be "%s"' % (arg, doc))
+        'help string for "%s" should be "%s"' % (arg, doc))
 
 
 @with_setup(capture.start, capture.stop)
@@ -89,34 +89,34 @@ def test_argument_value_bool():
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value)
+        'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
 def test_argument_value_string():
     value = 'test'
-    args = ['--string='+value, 'first']
+    args = ['--string=' + value, 'first']
     try:
         TestApp().run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value)
+        'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
 def test_argument_value_bool_and_string():
     value1 = 'b'
     value2 = 'test'
-    args = ['-b', '--string='+value2, 'first']
+    args = ['-b', '--string=' + value2, 'first']
     try:
         TestApp().run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value1 in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value1)
+        'output should contain "%s"' % value1)
     assert value2 in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value2)
+        'output should contain "%s"' % value2)
 
 
 # Command tests
@@ -127,7 +127,7 @@ def test_command_existance():
     args = [value]
     TestApp().run(args)
     assert value in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value)
+        'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
@@ -139,7 +139,7 @@ def test_command_help():
         assert e.code == 0, 'exit code should be 0'
     doc = inspect.getdoc(TestApp.first)
     assert doc in capture.stdout.getvalue(), (
-            'help string should be "%s"' % doc)
+        'help string should be "%s"' % doc)
 
 
 @raises(SystemExit)
@@ -167,7 +167,7 @@ def test_command_argument_existance():
         assert e.code == 0, 'exit code should be 0'
     arg = '-i'
     assert arg in capture.stdout.getvalue(), (
-            'help should list argument "%s"' % arg)
+        'help should list argument "%s"' % arg)
 
 
 @with_setup(capture.start, capture.stop)
@@ -180,7 +180,7 @@ def test_command_argument_help():
     arg = '-b'
     doc = 'bool argument'
     assert doc in capture.stdout.getvalue(), (
-            'help string for "%s" should be "%s"' % (arg, doc))
+        'help string for "%s" should be "%s"' % (arg, doc))
 
 
 @with_setup(capture.start, capture.stop)
@@ -192,31 +192,31 @@ def test_command_argument_value_bool():
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value)
+        'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
 def test_command_argument_value_string():
     value = 'test'
-    args = ['third', '--test='+value]
+    args = ['third', '--test=' + value]
     try:
         TestApp().run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value)
+        'output should contain "%s"' % value)
 
 
 @with_setup(capture.start, capture.stop)
 def test_command_argument_value_bool_and_string():
     value1 = 'i'
     value2 = 'test'
-    args = ['third', '-i', '--test='+value2]
+    args = ['third', '-i', '--test=' + value2]
     try:
         TestApp().run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
     assert value1 in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value1)
+        'output should contain "%s"' % value1)
     assert value2 in capture.stdout.getvalue(), (
-            'output should contain "%s"' % value2)
+        'output should contain "%s"' % value2)

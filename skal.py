@@ -1,11 +1,11 @@
 # Copyright 2012 Loop Lab
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -37,10 +37,10 @@ class SkalApp(object):
 
     """
     def __init__(self,
-            description = None,
-            version = None,
-            command_modules = [],
-            subcommand_modules = []):
+                 description=None,
+                 version=None,
+                 command_modules=[],
+                 subcommand_modules=[]):
         """Creates the argparser using metadata from decorators.
 
         """
@@ -61,20 +61,20 @@ class SkalApp(object):
 
         # Add the main parser
         self.__parser = argparse.ArgumentParser(
-                description = description,
-                formatter_class=argparse.RawDescriptionHelpFormatter)
+            description=description,
+            formatter_class=argparse.RawDescriptionHelpFormatter)
 
         # Add a version if there was one
         if version:
             self.__parser.add_argument(
-                    '--version',
-                    action = 'version',
-                    version = ('%(prog)s v' + version))
+                '--version',
+                action='version',
+                version=('%(prog)s v' + version))
         else:
             sys.stderr.write('Warning: no version is defined \n')
 
         # Add main subcommand parser
-        self.__subparsers = self.__parser.add_subparsers(dest = 'command')
+        self.__subparsers = self.__parser.add_subparsers(dest='command')
 
         # Add all class arguments and commands
         if hasattr(self.__class__, '__args__'):
@@ -89,7 +89,7 @@ class SkalApp(object):
             try:
                 module = __import__(name)
             except SyntaxError as e:
-                sys.stderr.write('Warning: skipping module "%s"\n' % e.filename)
+                sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
                 sys.stderr.write(e)
                 sys.stderr.write('\n')
                 break
@@ -104,20 +104,19 @@ class SkalApp(object):
             try:
                 module = __import__(name)
             except SyntaxError as e:
-                sys.stderr.write('Warning: skipping module "%s"\n' % e.filename)
+                sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
                 sys.stderr.write(e)
                 sys.stderr.write('\n')
                 break
             module_subparser, module_subparsers = _add_subparsers(
-                    name, module, self.__subparsers)
+                name, module, self.__subparsers)
             if hasattr(module, '__args__'):
                 _add_arguments(module.__args__, module_subparser)
             functions = inspect.getmembers(module, inspect.isfunction)
             for name, function in functions:
                 _add_parser(name, function, module_subparsers)
 
-
-    def run(self, args = None):
+    def run(self, args=None):
         """Applicatin starting point.
 
         This will run the associated method/function/module or print a help
@@ -127,15 +126,15 @@ class SkalApp(object):
         args -- Custom application arguments (default sys.argv)
 
         """
-        self.args = self.__parser.parse_args(args = args)
+        self.args = self.__parser.parse_args(args=args)
         if 'cmd' in self.args:
             if inspect.isfunction(self.args.cmd):
-                self.args.cmd(args = self.args)
+                self.args.cmd(args=self.args)
             else:
                 self.args.cmd()
 
 
-def command(func_or_args = None):
+def command(func_or_args=None):
     """Decorator to tell Skal that the method/function is a command.
 
     """
@@ -159,25 +158,35 @@ def default(f):
 def _add_parser(name, function, parent_parser):
     if hasattr(function, '__args__'):
         longhelp = inspect.getdoc(function)
-        shorthelp = longhelp.split('\n')[0]
+        if not longhelp:
+            sys.stderr.write('Warning: no documentation is defined\n')
+            longhelp = ''
+            shorthelp = ''
+        else:
+            shorthelp = longhelp.split('\n')[0]
         parser = parent_parser.add_parser(
-                name,
-                description = longhelp,
-                help = shorthelp)
+            name,
+            description=longhelp,
+            help=shorthelp)
         _add_arguments(function.__args__, parser)
-        parser.set_defaults(cmd = function)
+        parser.set_defaults(cmd=function)
         return parser
 
 
 def _add_subparsers(name, module, parent_parser):
     longhelp = inspect.getdoc(module)
-    shorthelp = longhelp.split('\n')[0]
+    if not longhelp:
+        sys.stderr.write('Warning: no documentation is defined\n')
+        longhelp = ''
+        shorthelp = ''
+    else:
+        shorthelp = longhelp.split('\n')[0]
     subparser = parent_parser.add_parser(
-            name,
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            description = longhelp,
-            help = shorthelp)
-    subparsers = subparser.add_subparsers(dest = 'sub_command')
+        name,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=longhelp,
+        help=shorthelp)
+    subparsers = subparser.add_subparsers(dest='sub_command')
     return subparser, subparsers
 
 
