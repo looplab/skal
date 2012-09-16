@@ -57,7 +57,8 @@ class SkalApp(object):
             if hasattr(main_module, '__version__'):
                 version = str(main_module.__version__)
         if not description:
-            sys.stderr.write('Warning: no documentation is defined \n')
+            sys.stderr.write('Warning: no documentation for app\n')
+            description = ""
 
         # Add the main parser
         self.__parser = argparse.ArgumentParser(
@@ -159,7 +160,7 @@ def _add_parser(name, function, parent_parser):
     if hasattr(function, '__args__'):
         longhelp = inspect.getdoc(function)
         if not longhelp:
-            sys.stderr.write('Warning: no documentation is defined\n')
+            sys.stderr.write('Warning: no documentation for %s\n' % name)
             longhelp = ''
             shorthelp = ''
         else:
@@ -176,7 +177,7 @@ def _add_parser(name, function, parent_parser):
 def _add_subparsers(name, module, parent_parser):
     longhelp = inspect.getdoc(module)
     if not longhelp:
-        sys.stderr.write('Warning: no documentation is defined\n')
+        sys.stderr.write('Warning: no documentation for %s\n' % name)
         longhelp = ''
         shorthelp = ''
     else:
