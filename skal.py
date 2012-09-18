@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -79,18 +79,18 @@ class SkalApp(object):
         # Modules, as commands
         for name in command_modules:
             module = _import_module(name)
-            if not module:
-                break
-            _add_commands_from_module(module, self.__parser, self.__subparser)
+            if module:
+                _add_commands_from_module(
+                    module, self.__parser, self.__subparser)
 
         # Modules, as subcommands
         for name in subcommand_modules:
             module = _import_module(name)
-            if not module:
-                break
-            module_parser, module_subparser = _add_subparser(
-                module, self.__subparser)
-            _add_commands_from_module(module, module_parser, module_subparser)
+            if module:
+                module_parser, module_subparser = _add_subparser(
+                    module, self.__subparser)
+                _add_commands_from_module(
+                    module, module_parser, module_subparser)
 
         # Package, as commands
 
@@ -206,7 +206,7 @@ def _extract_doc(item):
     desc = inspect.getdoc(item)
     if not desc:
         sys.stderr.write('Warning: no documentation for "%s" in %s\n' % (
-            item.__name__, inspect.getfile(item)))
+            item.__name__, inspect.getsourcefile(item)))
         desc = ''
         help = ''
     else:
