@@ -94,8 +94,7 @@ def test_command_non_existing():
     SkalApp(command_modules=[module]).run(args)
 
 
-# @raises(SystemExit)
-@with_setup(capture.start, capture.stop_with_print)
+@with_setup(capture.start, capture.stop)
 def test_command_duplicate():
     args = ['-h']
     try:
@@ -118,11 +117,22 @@ def test_command_no_doc():
 def test_command_syntax_error():
     args = ['-h']
     try:
-        SkalApp(command_modules=['skalmodule_error']).run(args)
+        SkalApp(command_modules=['skalmodule_syntaxerror']).run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
-    assert 'syntax error' in capture.stderr.getvalue(), (
-        'syntax errors should be found')
+    assert 'SyntaxError' in capture.stderr.getvalue(), (
+        'output should contain SyntaxError')
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_name_error():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=['skalmodule_nameerror']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'NameError' in capture.stderr.getvalue(), (
+        'output should contain NameError')
 
 
 # Subcommand tests
@@ -197,8 +207,19 @@ def test_subcommand_no_doc():
 def test_subcommand_syntax_error():
     args = ['-h']
     try:
-        SkalApp(subcommand_modules=['skalmodule_error']).run(args)
+        SkalApp(subcommand_modules=['skalmodule_syntaxerror']).run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
-    assert 'syntax error' in capture.stderr.getvalue(), (
-        'syntax errors should be found')
+    assert 'SyntaxError' in capture.stderr.getvalue(), (
+        'output should contain SyntaxError')
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_name_error():
+    args = ['-h']
+    try:
+        SkalApp(subcommand_modules=['skalmodule_nameerror']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'NameError' in capture.stderr.getvalue(), (
+        'output should contain NameError')
