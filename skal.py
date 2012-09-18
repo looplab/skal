@@ -55,7 +55,7 @@ class SkalApp(object):
             if hasattr(module, '__version__'):
                 version = str(module.__version__)
         if not description:
-            sys.stderr.write('Warning: no documentation for app\n')
+            sys.stderr.write('Warning: no main documentation\n')
             description = ""
 
         # Add the main parser
@@ -152,13 +152,17 @@ def _add_arguments(args, parser):
 def _add_command(function, parent):
     if hasattr(function, '__args__'):
         help, desc = _extract_doc(function)
+        if function.__name__ in parent._name_parser_map:
+            sys.stderr.write(
+                'Warning: ignoring duplicate command "%s" in %s\n' % (
+                function.__name__, inspect.getfile(function)))
+            return
         parser = parent.add_parser(
             function.__name__,
             description=desc,
             help=help)
         _add_arguments(function.__args__, parser)
         parser.set_defaults(cmd=function)
-        return parser
 
 
 def _add_subparser(module, parent):
@@ -177,7 +181,7 @@ def _import_module(name):
     try:
         module = __import__(name)
     except SyntaxError as e:
-        sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
+        sys.stderr.write('Warning: syntax error in "%s"\n' % e.filename)
         sys.stderr.write(e)
         sys.stderr.write('\n')
     return module
@@ -194,7 +198,8 @@ def _add_commands_from_module(module, parser, subparser):
 def _extract_doc(item):
     desc = inspect.getdoc(item)
     if not desc:
-        sys.stderr.write('Warning: no documentation for %s\n' % item.__name__)
+        sys.stderr.write('Warning: no documentation for "%s" in %s\n' % (
+            item.__name__, inspect.getfile(item)))
         desc = ''
         help = ''
     else:
