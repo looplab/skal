@@ -13,8 +13,14 @@
 # limitations under the License.
 
 from setuptools import setup
-
+import sys
 from skal import __version__
+
+
+requirements = []
+if sys.version_info < (2, 7):
+    requirements.append('argparse')
+
 
 setup(
     name = "skal",
@@ -25,6 +31,7 @@ setup(
     url = "https://github.com/looplab/skal",
     license = "Apache License 2.0",
     py_modules = ["skal"],
+    install_requires = requirements,
     classifiers = [
         "Development Status :: 2 - Pre-Alpha",
         "Environment :: Console",
