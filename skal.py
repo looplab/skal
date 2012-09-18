@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -21,6 +21,7 @@ import sys
 import argparse
 import inspect
 import types
+import traceback
 
 
 class SkalApp(object):
@@ -167,8 +168,10 @@ def _add_command(function, parent):
 
 def _add_subparser(module, parent):
     help, desc = _extract_doc(module)
+    package, _, mod = module.__name__.partition('.')
+    name = mod if mod else package
     parser = parent.add_parser(
-        module.__name__,
+        name,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=desc,
         help=help)
@@ -178,12 +181,16 @@ def _add_subparser(module, parent):
 
 def _import_module(name):
     module = None
+    package, _, mod = name.partition('.')
+    fromlist = [mod] if mod else []
     try:
-        module = __import__(name)
-    except SyntaxError as e:
-        sys.stderr.write('Warning: syntax error in "%s"\n' % e.filename)
-        sys.stderr.write(e)
-        sys.stderr.write('\n')
+        module = __import__(name, fromlist=fromlist)
+    except SyntaxError:
+        sys.stderr.write('Warning: error in "%s", skipping\n' % name)
+        sys.stderr.write(traceback.format_exc())
+    except NameError:
+        sys.stderr.write('Warning: error in "%s", skipping\n' % name)
+        sys.stderr.write(traceback.format_exc())
     return module
 
 
@@ -203,5 +210,5 @@ def _extract_doc(item):
         desc = ''
         help = ''
     else:
-        help = desc.split('\n')[0]
+        help, _, _ = desc.partition('\n')
     return help, desc

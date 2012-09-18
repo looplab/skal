@@ -5,6 +5,15 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.5
+-------------
+
+Released on September 18th 2012
+
+- Generate correct name for commands from modules inside packages
+- Catch NameError and not only SyntaxError on module import
+
+
 Version 0.1.4
 -------------
 
