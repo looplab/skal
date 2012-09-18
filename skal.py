@@ -24,16 +24,11 @@ import types
 
 
 class SkalApp(object):
-    """A base class for command-subcommand apps.
+    """A base class for command-subcommand apps
 
     This class is meant to be used either as a base class for a complete
     application or on its own loading the application commands from modules and
     packages. See README.md for usage info.
-
-    Keyword arguments:
-    description        -- The main help text, if None the subclass docstring
-    command_modules    -- List, functions from each module will be subcommands
-    subcommand_modules -- List, each module will be a subcommand
 
     """
     def __init__(self,
@@ -41,21 +36,24 @@ class SkalApp(object):
                  version=None,
                  command_modules=[],
                  subcommand_modules=[]):
-        """Creates the argparser using metadata from decorators.
+        """Creates the argparser using metadata from decorators
+
+        Keyword arguments:
+        description        -- The main help text, if None the class docstring
+        version            -- The version string of the app
+        command_modules    -- List, functions from each module will be commands
+        subcommand_modules -- List, each module will be a subcommand
 
         """
-        # Get the application description
-        # TODO: Set the doc to none and warn if we are not a subclass and no
-        # other description is given
+        # Description and version
         if self.__class__ is SkalApp:
             if description:
                 description = inspect.cleandoc(description)
         else:
             description = inspect.getdoc(self)
-            # Add the version flag if a version is defined
-            main_module = sys.modules[self.__class__.__module__]
-            if hasattr(main_module, '__version__'):
-                version = str(main_module.__version__)
+            module = sys.modules[self.__class__.__module__]
+            if hasattr(module, '__version__'):
+                version = str(module.__version__)
         if not description:
             sys.stderr.write('Warning: no documentation for app\n')
             description = ""
@@ -64,58 +62,34 @@ class SkalApp(object):
         self.__parser = argparse.ArgumentParser(
             description=description,
             formatter_class=argparse.RawDescriptionHelpFormatter)
-
-        # Add a version if there was one
+        self.__subparser = self.__parser.add_subparsers()
         if version:
-            self.__parser.add_argument(
-                '--version',
-                action='version',
-                version=('%(prog)s v' + version))
-        else:
-            sys.stderr.write('Warning: no version is defined \n')
+            self.__parser.add_argument('--version', action='version',
+                                       version=('%(prog)s v' + version))
 
-        # Add main subcommand parser
-        self.__subparsers = self.__parser.add_subparsers(dest='command')
-
-        # Add all class arguments and commands
+        # Sub class
         if hasattr(self.__class__, '__args__'):
             _add_arguments(self.__class__.__args__, self.__parser)
         methods = inspect.getmembers(self.__class__, inspect.ismethod)
         for name, method in methods:
             bound_method = types.MethodType(method, self, self.__class__)
-            _add_parser(name, bound_method, self.__subparsers)
+            _add_command(bound_method, self.__subparser)
 
-        # Add all module arguments and functions as commands
+        # Modules, as commands
         for name in command_modules:
-            try:
-                module = __import__(name)
-            except SyntaxError as e:
-                sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
-                sys.stderr.write(e)
-                sys.stderr.write('\n')
+            module = _import_module(name)
+            if not module:
                 break
-            if hasattr(module, '__args__'):
-                _add_arguments(module.__args__, self.__parser)
-            functions = inspect.getmembers(module, inspect.isfunction)
-            for name, function in functions:
-                _add_parser(name, function, self.__subparsers)
+            _add_commands_from_module(module, self.__parser, self.__subparser)
 
-        # Add all module arguments and functions as sub commands
+        # Modules, as subcommands
         for name in subcommand_modules:
-            try:
-                module = __import__(name)
-            except SyntaxError as e:
-                sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
-                sys.stderr.write(e)
-                sys.stderr.write('\n')
+            module = _import_module(name)
+            if not module:
                 break
-            module_subparser, module_subparsers = _add_subparsers(
-                name, module, self.__subparsers)
-            if hasattr(module, '__args__'):
-                _add_arguments(module.__args__, module_subparser)
-            functions = inspect.getmembers(module, inspect.isfunction)
-            for name, function in functions:
-                _add_parser(name, function, module_subparsers)
+            module_parser, module_subparser = _add_subparser(
+                module, self.__subparser)
+            _add_commands_from_module(module, module_parser, module_subparser)
 
     def run(self, args=None):
         """Applicatin starting point.
@@ -156,42 +130,7 @@ def default(f):
     raise NotImplementedError
 
 
-def _add_parser(name, function, parent_parser):
-    if hasattr(function, '__args__'):
-        longhelp = inspect.getdoc(function)
-        if not longhelp:
-            sys.stderr.write('Warning: no documentation for %s\n' % name)
-            longhelp = ''
-            shorthelp = ''
-        else:
-            shorthelp = longhelp.split('\n')[0]
-        parser = parent_parser.add_parser(
-            name,
-            description=longhelp,
-            help=shorthelp)
-        _add_arguments(function.__args__, parser)
-        parser.set_defaults(cmd=function)
-        return parser
-
-
-def _add_subparsers(name, module, parent_parser):
-    longhelp = inspect.getdoc(module)
-    if not longhelp:
-        sys.stderr.write('Warning: no documentation for %s\n' % name)
-        longhelp = ''
-        shorthelp = ''
-    else:
-        shorthelp = longhelp.split('\n')[0]
-    subparser = parent_parser.add_parser(
-        name,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=longhelp,
-        help=shorthelp)
-    subparsers = subparser.add_subparsers(dest='sub_command')
-    return subparser, subparsers
-
-
-def _add_arguments(args, argparser):
+def _add_arguments(args, parser):
     for k in args:
         arg = []
         if type(k) == str:
@@ -203,4 +142,57 @@ def _add_arguments(args, argparser):
             if type(full) == str:
                 arg.append(full)
         options = args[k]
-        argparser.add_argument(*arg, **options)
+        parser.add_argument(*arg, **options)
+
+
+def _add_command(function, parent):
+    if hasattr(function, '__args__'):
+        help, desc = _extract_doc(function)
+        parser = parent.add_parser(
+            function.__name__,
+            description=desc,
+            help=help)
+        _add_arguments(function.__args__, parser)
+        parser.set_defaults(cmd=function)
+        return parser
+
+
+def _add_subparser(module, parent):
+    help, desc = _extract_doc(module)
+    parser = parent.add_parser(
+        module.__name__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=desc,
+        help=help)
+    subparser = parser.add_subparsers()
+    return parser, subparser
+
+
+def _import_module(name):
+    module = None
+    try:
+        module = __import__(name)
+    except SyntaxError as e:
+        sys.stderr.write('Warning: skipping "%s"\n' % e.filename)
+        sys.stderr.write(e)
+        sys.stderr.write('\n')
+    return module
+
+
+def _add_commands_from_module(module, parser, subparser):
+    if hasattr(module, '__args__'):
+        _add_arguments(module.__args__, parser)
+    functions = inspect.getmembers(module, inspect.isfunction)
+    for name, function in functions:
+        _add_command(function, subparser)
+
+
+def _extract_doc(item):
+    desc = inspect.getdoc(item)
+    if not desc:
+        sys.stderr.write('Warning: no documentation for %s\n' % item.__name__)
+        desc = ''
+        help = ''
+    else:
+        help = desc.split('\n')[0]
+    return help, desc
