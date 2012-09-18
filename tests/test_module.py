@@ -121,7 +121,7 @@ def test_command_syntax_error():
         SkalApp(command_modules=['skalmodule_error']).run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
-    assert 'skipping' in capture.stderr.getvalue(), (
+    assert 'syntax error' in capture.stderr.getvalue(), (
         'syntax errors should be found')
 
 
@@ -200,5 +200,5 @@ def test_subcommand_syntax_error():
         SkalApp(subcommand_modules=['skalmodule_error']).run(args)
     except SystemExit as e:
         assert e.code == 0, 'exit code should be 0'
-    assert 'skipping' in capture.stderr.getvalue(), (
+    assert 'syntax error' in capture.stderr.getvalue(), (
         'syntax errors should be found')
