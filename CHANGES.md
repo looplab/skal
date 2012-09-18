@@ -5,6 +5,15 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.4
+-------------
+
+Released on September 18th 2012
+
+- Duplicate commands from different modules are now ignored and warned for
+- Better output of missing documentation and syntax error in commands
+
+
 Version 0.1.3
 -------------
 
