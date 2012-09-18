@@ -19,7 +19,7 @@ from helpers import OutputCapture
 from skal import SkalApp
 
 
-capture = OutputCapture(debug=True)
+capture = OutputCapture(debug=False)
 module = 'skalmodule'
 
 
@@ -92,6 +92,20 @@ def test_command_without_decorator():
 def test_command_non_existing():
     args = ['other']
     SkalApp(command_modules=[module]).run(args)
+
+
+# @raises(SystemExit)
+@with_setup(capture.start, capture.stop_with_print)
+def test_command_duplicate():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=[module, 'skalmodule_nodoc']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'duplicate' in capture.stderr.getvalue(), (
+        'duplicate commands should print warning and be skipped')
+    assert 'first command, second instance' not in capture.stdout.getvalue(), (
+        'duplicate commands should not be added')
 
 
 @with_setup(capture.start, capture.stop)
