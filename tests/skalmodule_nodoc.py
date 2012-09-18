@@ -3,5 +3,5 @@ from skal import command
 
 @command
 def first(args):
-    """first command"""
-    print('first')
+    """first command, second instance"""
+    print('first, second instance')
