@@ -19,7 +19,7 @@ from helpers import OutputCapture
 from skal import SkalApp
 
 
-capture = OutputCapture(debug=False)
+capture = OutputCapture(debug=True)
 module = 'skalmodule'
 
 
@@ -133,6 +133,17 @@ def test_subcommand_help():
     doc = inspect.getdoc(skalmodule)
     assert doc in capture.stdout.getvalue(), (
         'help string should be "%s"' % doc)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_no_help():
+    args = ['-h']
+    try:
+        SkalApp(subcommand_modules=['skalmodule_nodoc']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'skalmodule_nodoc' in capture.stderr.getvalue(), (
+        'there should be a warning about missing documentation')
 
 
 @with_setup(capture.start, capture.stop)
