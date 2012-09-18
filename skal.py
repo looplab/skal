@@ -91,6 +91,10 @@ class SkalApp(object):
                 module, self.__subparser)
             _add_commands_from_module(module, module_parser, module_subparser)
 
+        # Package, as commands
+
+        # Package, as subcommands
+
     def run(self, args=None):
         """Applicatin starting point.
 
