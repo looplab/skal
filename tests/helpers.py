@@ -39,3 +39,13 @@ class OutputCapture(object):
                 print('\nStderr:\n%s' % self.stderr.getvalue())
         self.stdout = None
         self.stderr = None
+
+    def stop_with_print(self):
+        sys.stdout = self.old_stdout
+        sys.stderr = self.old_stderr
+        if self.stdout.getvalue() != "":
+            print('\nStdout:\n%s' % self.stdout.getvalue())
+        if self.stderr.getvalue() != "":
+            print('\nStderr:\n%s' % self.stderr.getvalue())
+        self.stdout = None
+        self.stderr = None
