@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -160,6 +160,7 @@ def _add_command(function, parent):
             return
         parser = parent.add_parser(
             function.__name__,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
             description=desc,
             help=help)
         _add_arguments(function.__args__, parser)
