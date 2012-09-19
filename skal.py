@@ -46,18 +46,26 @@ class SkalApp(object):
         subcommand_modules -- List, each module will be a subcommand
 
         """
-        # Description and version
-        if self.__class__ is SkalApp:
-            if description:
-                description = inspect.cleandoc(description)
-        else:
+        # Description
+        if description:
+            description = inspect.cleandoc(description)
+        elif (isinstance(self, SkalApp) and
+              type(self) != SkalApp):
             description = inspect.getdoc(self)
+        else:
+            sys.stderr.write('Warning: no main documentation\n')
+            description = ""
+
+        # Version
+        if version:
+            version = str(version)
+        elif (isinstance(self, SkalApp) and
+              type(self) != SkalApp):
             module = sys.modules[self.__class__.__module__]
             if hasattr(module, '__version__'):
                 version = str(module.__version__)
-        if not description:
-            sys.stderr.write('Warning: no main documentation\n')
-            description = ""
+        else:
+            sys.stderr.write('Warning: no version set\n')
 
         # Add the main parser
         self.__parser = argparse.ArgumentParser(
@@ -108,13 +116,10 @@ class SkalApp(object):
         """
         # TODO: Add tests to how command line arguments are passed in
         raw_args = self.__parser.parse_args(args=args)
-        if not 'cmd' in raw_args:
-            sys.stderr.write('Warning: No command found in args\n')
-        if not inspect.isfunction(raw_args.cmd):
-            sys.stderr.write('Warning: Command in args is not a function\n')
         args = vars(raw_args)
         cmd = args.pop('cmd')
-        cmd(**args)
+        if hasattr(cmd, '__call__'):
+            cmd(**args)
 
 
 def command(func_or_args=None):
@@ -209,8 +214,14 @@ def _add_commands_from_module(module, parser, subparser):
 def _extract_doc(item):
     desc = inspect.getdoc(item)
     if not desc:
+        try:
+            sourcefile = inspect.getsourcefile(item)
+        except TypeError:
+            # We need to get to the original function if item is manually bound
+            # from a sub class of SkalApp
+            sourcefile = inspect.getsourcefile(item.__func__)
         sys.stderr.write('Warning: no documentation for "%s" in %s\n' % (
-            item.__name__, inspect.getsourcefile(item)))
+            item.__name__, sourcefile))
         desc = ''
         help = ''
     else:

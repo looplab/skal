@@ -29,7 +29,7 @@ module = 'skalmodule'
 # Global tests
 
 @with_setup(capture.start, capture.stop)
-def test_help():
+def test_description():
     args = ['-h']
     doc = """main help string
 
@@ -45,6 +45,17 @@ def test_help():
 
 
 @with_setup(capture.start, capture.stop)
+def test_no_description():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'no main documentation' in capture.stderr.getvalue(), (
+        'there should be a warning about missing main documentation')
+
+
+@with_setup(capture.start, capture.stop)
 def test_version():
     args = ['--version']
     version = '0.5.2'
@@ -56,10 +67,21 @@ def test_version():
         'version should be "%s"' % version)
 
 
+@with_setup(capture.start, capture.stop)
+def test_no_version():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'no version set' in capture.stderr.getvalue(), (
+        'there should be a warning about no version set')
+
+
 # Command tests
 
 @with_setup(capture.start, capture.stop)
-def test_command_existance():
+def test_command_existing():
     value = 'first'
     args = [value]
     SkalApp(command_modules=[module]).run(args)
@@ -67,8 +89,15 @@ def test_command_existance():
         'output should contain "%s"' % value)
 
 
+@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
-def test_command_help():
+def test_command_non_existing():
+    args = ['other']
+    SkalApp(command_modules=[module]).run(args)
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_doc():
     args = ['first', '-h']
     try:
         SkalApp(command_modules=[module]).run(args)
@@ -80,17 +109,21 @@ def test_command_help():
         'help string should be "%s"' % doc)
 
 
+@with_setup(capture.start, capture.stop)
+def test_command_no_doc():
+    args = ['no_doc']
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'no_doc' in capture.stderr.getvalue(), (
+        'there should be a warning about missing documentation')
+
+
 @raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_without_decorator():
     args = ['second']
-    SkalApp(command_modules=[module]).run(args)
-
-
-@raises(SystemExit)
-@with_setup(capture.start, capture.stop)
-def test_command_non_existing():
-    args = ['other']
     SkalApp(command_modules=[module]).run(args)
 
 
@@ -105,12 +138,6 @@ def test_command_duplicate():
         'duplicate commands should print warning and be skipped')
     assert 'first command, second instance' not in capture.stdout.getvalue(), (
         'duplicate commands should not be added')
-
-
-@with_setup(capture.start, capture.stop)
-def test_command_no_doc():
-    args = ['no_doc']
-    SkalApp(command_modules=[module]).run(args)
 
 
 @with_setup(capture.start, capture.stop)
@@ -138,16 +165,7 @@ def test_command_name_error():
 # Subcommand tests
 
 @with_setup(capture.start, capture.stop)
-def test_subcommand_existance():
-    value = 'first'
-    args = [module, value]
-    SkalApp(subcommand_modules=[module]).run(args)
-    assert value in capture.stdout.getvalue(), (
-        'output should contain "%s"' % value)
-
-
-@with_setup(capture.start, capture.stop)
-def test_subcommand_help():
+def test_subcommand_doc():
     args = [module, '-h']
     try:
         SkalApp(subcommand_modules=[module]).run(args)
@@ -160,7 +178,7 @@ def test_subcommand_help():
 
 
 @with_setup(capture.start, capture.stop)
-def test_subcommand_no_help():
+def test_subcommand_no_doc():
     args = ['-h']
     try:
         SkalApp(subcommand_modules=['skalmodule_nodoc']).run(args)
@@ -168,39 +186,6 @@ def test_subcommand_no_help():
         assert e.code == 0, 'exit code should be 0'
     assert 'skalmodule_nodoc' in capture.stderr.getvalue(), (
         'there should be a warning about missing documentation')
-
-
-@with_setup(capture.start, capture.stop)
-def test_subcommand_command_help():
-    args = [module, '-h']
-    try:
-        SkalApp(subcommand_modules=[module]).run(args)
-    except SystemExit as e:
-        assert e.code == 0, 'exit code should be 0'
-    import skalmodule
-    doc = inspect.getdoc(skalmodule)
-    assert doc in capture.stdout.getvalue(), (
-        'help string should be "%s"' % doc)
-
-
-@raises(SystemExit)
-@with_setup(capture.start, capture.stop)
-def test_subcommand_without_decorator():
-    args = [module, 'second']
-    SkalApp(subcommand_modules=[module]).run(args)
-
-
-@raises(SystemExit)
-@with_setup(capture.start, capture.stop)
-def test_subcommand_non_existing():
-    args = [module, 'other']
-    SkalApp(subcommand_modules=[module]).run(args)
-
-
-@with_setup(capture.start, capture.stop)
-def test_subcommand_no_doc():
-    args = [module, 'no_doc']
-    SkalApp(subcommand_modules=[module]).run(args)
 
 
 @with_setup(capture.start, capture.stop)
@@ -223,3 +208,50 @@ def test_subcommand_name_error():
         assert e.code == 0, 'exit code should be 0'
     assert 'NameError' in capture.stderr.getvalue(), (
         'output should contain NameError')
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_existing():
+    value = 'first'
+    args = [module, value]
+    SkalApp(subcommand_modules=[module]).run(args)
+    assert value in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value)
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_non_existing():
+    args = [module, 'other']
+    SkalApp(subcommand_modules=[module]).run(args)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_doc():
+    args = [module, 'first', '-h']
+    try:
+        SkalApp(subcommand_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    import skalmodule
+    doc = inspect.getdoc(skalmodule.first)
+    assert doc in capture.stdout.getvalue(), (
+        'help string should be "%s"' % doc)
+
+
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_no_doc():
+    args = [module, 'no_doc']
+    try:
+        SkalApp(subcommand_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'no_doc' in capture.stderr.getvalue(), (
+        'there should be a warning about missing documentation')
+
+
+@raises(SystemExit)
+@with_setup(capture.start, capture.stop)
+def test_subcommand_command_without_decorator():
+    args = [module, 'second']
+    SkalApp(subcommand_modules=[module]).run(args)

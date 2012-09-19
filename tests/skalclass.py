@@ -59,3 +59,28 @@ class TestApp(SkalApp):
     def ctrlc(self, **args):
         """ctrl c test"""
         raise KeyboardInterrupt
+
+    @command
+    def no_doc(self, **args):
+        print('there are no docs for this function')
+
+    @command
+    def args_dict(self, **args):
+        if 'b' in args:
+            print('b')
+        if 'string' in args:
+            print(args['string'])
+
+    @command
+    def args_mixed(self, b, **args):
+        if b:
+            print('b')
+        if 'string' in args:
+            print(args['string'])
+
+    @command
+    def args_unpack(self, b, string):
+        if b:
+            print('b')
+        if string:
+            print(string)

@@ -12,6 +12,7 @@ Released on xx xx 2012
 
 - Fixes a bug where long command help was incorrectly formated
 - Change argument passing to commands to use unpacking
+- Change to the order in which version and description is set
 
 
 Version 0.1.6

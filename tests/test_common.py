@@ -13,7 +13,8 @@
 # limitations under the License.
 
 
-from nose.tools import raises
+from nose.tools import raises, with_setup
+from helpers import OutputCapture
 from skalclass import TestApp
 from skal import command, default
 
@@ -21,11 +22,15 @@ from skal import command, default
 __version__ = '0.1'
 
 
+capture = OutputCapture(debug=False)
+
+
 # --- Test cases --------------------------------------------------------------
 
 
 # Decorator tests
 
+@with_setup(capture.start, capture.stop)
 def test_decorator():
     @command
     def test():
@@ -34,6 +39,7 @@ def test_decorator():
         'function should have metadata')
 
 
+@with_setup(capture.start, capture.stop)
 def test_decorator_with_string_argument():
     @command({
         '-t': {}
@@ -48,6 +54,7 @@ def test_decorator_with_string_argument():
         'value of metadata "-t" should be a dict')
 
 
+@with_setup(capture.start, capture.stop)
 def test_decorator_with_tuple_argument():
     @command({
         ('-t', '--test'): {}
@@ -62,6 +69,7 @@ def test_decorator_with_tuple_argument():
         'metadata of ("-t", "--test") should be a dict')
 
 
+@with_setup(capture.start, capture.stop)
 @raises(NotImplementedError)
 def test_decorator_default():
     @default
@@ -71,6 +79,7 @@ def test_decorator_default():
 
 # Global tests
 
+@with_setup(capture.start, capture.stop)
 @raises(KeyboardInterrupt)
 def test_keyboard_interrupt():
     args = ['ctrlc']

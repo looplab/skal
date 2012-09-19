@@ -29,7 +29,7 @@ capture = OutputCapture(debug=False)
 # Global tests
 
 @with_setup(capture.start, capture.stop)
-def test_override_help():
+def test_description():
     args = ['-h']
     try:
         TestApp().run(args)
@@ -41,7 +41,7 @@ def test_override_help():
 
 
 @with_setup(capture.start, capture.stop)
-def test_override_version():
+def test_version():
     args = ['--version']
     try:
         TestApp().run(args)
@@ -52,10 +52,34 @@ def test_override_version():
         'version should be "%s"' % version)
 
 
+@with_setup(capture.start, capture.stop)
+def test_override_description():
+    args = ['-h']
+    doc = 'new description'
+    try:
+        TestApp(description=doc).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert doc in capture.stdout.getvalue(), (
+        'help string should be "%s"' % doc)
+
+
+@with_setup(capture.start, capture.stop)
+def test_override_version():
+    args = ['--version']
+    version = '0.0.9'
+    try:
+        TestApp(version=version).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert version in capture.stderr.getvalue(), (
+        'version should be "%s"' % version)
+
+
 # Argument tests
 
 @with_setup(capture.start, capture.stop)
-def test_argument_existance():
+def test_argument_existing():
     args = ['-h']
     try:
         TestApp().run(args)
@@ -67,7 +91,7 @@ def test_argument_existance():
 
 
 @with_setup(capture.start, capture.stop)
-def test_argument_help():
+def test_argument_doc():
     # TODO: fix this test
     args = ['-h']
     try:
@@ -122,7 +146,7 @@ def test_argument_value_bool_and_string():
 # Command tests
 
 @with_setup(capture.start, capture.stop)
-def test_command_existance():
+def test_command_existing():
     value = 'first'
     args = [value]
     TestApp().run(args)
@@ -130,8 +154,15 @@ def test_command_existance():
         'output should contain "%s"' % value)
 
 
+@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
-def test_command_help():
+def test_command_non_existing():
+    args = ['other']
+    TestApp().run(args)
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_doc():
     args = ['-h']
     try:
         TestApp().run(args)
@@ -142,6 +173,17 @@ def test_command_help():
         'help string should be "%s"' % doc)
 
 
+@with_setup(capture.start, capture.stop)
+def test_command_no_doc():
+    args = ['-h']
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'no_doc' in capture.stderr.getvalue(), (
+        'there should be a warning about missing documentation')
+
+
 @raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_without_decorator():
@@ -149,17 +191,10 @@ def test_command_without_decorator():
     TestApp().run(args)
 
 
-@raises(SystemExit)
-@with_setup(capture.start, capture.stop)
-def test_command_non_existing():
-    args = ['other']
-    TestApp().run(args)
-
-
 # Command argument tests
 
 @with_setup(capture.start, capture.stop)
-def test_command_argument_existance():
+def test_command_argument_existing():
     args = ['third', '-h']
     try:
         TestApp().run(args)
@@ -171,7 +206,7 @@ def test_command_argument_existance():
 
 
 @with_setup(capture.start, capture.stop)
-def test_command_argument_help():
+def test_command_argument_doc():
     args = ['third', '-h']
     try:
         TestApp().run(args)
