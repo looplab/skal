@@ -143,6 +143,51 @@ def test_argument_value_bool_and_string():
         'output should contain "%s"' % value2)
 
 
+@with_setup(capture.start, capture.stop)
+def test_argument_passing_dict():
+    value1 = 'b'
+    value2 = 'test'
+    args = ['-b', '--string=' + value2, 'args_dict']
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value1 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value1)
+    assert value2 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value2)
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_passing_mixed():
+    value1 = 'b'
+    value2 = 'test'
+    args = ['-b', '--string=' + value2, 'args_mixed']
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value1 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value1)
+    assert value2 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value2)
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_passing_unpack():
+    value1 = 'b'
+    value2 = 'test'
+    args = ['-b', '--string=' + value2, 'args_unpack']
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value1 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value1)
+    assert value2 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value2)
+
+
 # Command tests
 
 @with_setup(capture.start, capture.stop)
