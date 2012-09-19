@@ -8,7 +8,7 @@ before version 1. Read more at http://semvar.org
 Version 0.1.7
 -------------
 
-Released on xx xx 2012
+Released on September 19th 2012
 
 - Fixes a bug where long command help was incorrectly formated
 - Change argument passing to commands to use unpacking
