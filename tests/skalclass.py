@@ -1,11 +1,11 @@
 # Copyright 2012 Loop Lab
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,15 +31,15 @@ class TestApp(SkalApp):
     }
 
     @command
-    def first(self):
+    def first(self, **args):
         """first command"""
         print('first')
-        if self.args.b:
+        if 'b' in args:
             print('b')
-        if self.args.string:
-            print(self.args.string)
+        if 'string' in args:
+            print(args['string'])
 
-    def second(self):
+    def second(self, **args):
         """second command"""
         print('second')
 
@@ -47,15 +47,15 @@ class TestApp(SkalApp):
         '-i': {'help': 'bool argument', 'action': 'store_true'},
         ('-t', '--test'): {'help': 'string argument with long name'}
     })
-    def third(self):
+    def third(self, **args):
         """third command"""
         print('third')
-        if self.args.i:
+        if 'i' in args:
             print('i')
-        if self.args.test:
-            print(self.args.test)
+        if 'test' in args:
+            print(args['test'])
 
     @command
-    def ctrlc(self):
+    def ctrlc(self, **args):
         """ctrl c test"""
         raise KeyboardInterrupt

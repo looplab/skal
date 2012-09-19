@@ -14,16 +14,16 @@ __args__ = {
 
 
 @command
-def first(args):
+def first(**args):
     """first command"""
     print('first')
-    if args.b:
+    if 'b' in args:
         print('b')
-    if args.string:
-        print(args.string)
+    if 'string' in args:
+        print(args['string'])
 
 
-def second(args):
+def second(**args):
     """second command"""
     print('second')
 
@@ -32,21 +32,21 @@ def second(args):
     '-i': {'help': 'bool argument', 'action': 'store_true'},
     ('-t', '--test'): {'help': 'string argument with long name'}
 })
-def third(args):
+def third(**args):
     """third command"""
     print('third')
-    if args.i:
+    if 'i' in args:
         print('i')
-    if args.test:
-        print(args.test)
+    if 'test' in args:
+        print(args['test'])
 
 
 @command
-def no_doc(args):
+def no_doc(**args):
     print('there are no docs for this function')
 
 
 @command
-def ctrlc(args):
+def ctrlc(**args):
     """ctrl c test"""
     raise KeyboardInterrupt

@@ -106,12 +106,15 @@ class SkalApp(object):
         args -- Custom application arguments (default sys.argv)
 
         """
-        self.args = self.__parser.parse_args(args=args)
-        if 'cmd' in self.args:
-            if inspect.isfunction(self.args.cmd):
-                self.args.cmd(args=self.args)
-            else:
-                self.args.cmd()
+        # TODO: Add tests to how command line arguments are passed in
+        raw_args = self.__parser.parse_args(args=args)
+        if not 'cmd' in raw_args:
+            sys.stderr.write('Warning: No command found in args\n')
+        if not inspect.isfunction(raw_args.cmd):
+            sys.stderr.write('Warning: Command in args is not a function\n')
+        args = vars(raw_args)
+        cmd = args.pop('cmd')
+        cmd(**args)
 
 
 def command(func_or_args=None):
