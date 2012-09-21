@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -177,8 +177,8 @@ def _add_command(function, parent):
 
 def _add_subparser(module, parent):
     help, desc = _extract_doc(module)
-    package, _, mod = module.__name__.partition('.')
-    name = mod if mod else package
+    package, _, mod = module.__name__.rpartition('.')
+    name = mod if package else mod
     parser = parent.add_parser(
         name,
         formatter_class=argparse.RawDescriptionHelpFormatter,
