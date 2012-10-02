@@ -78,6 +78,109 @@ def test_no_version():
         'there should be a warning about no version set')
 
 
+@with_setup(capture.start, capture.stop)
+def test_missing_module():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=['missing_module']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'does not exist' in capture.stderr.getvalue(), (
+        'there should be a warning about module not existing')
+
+
+# Argument tests
+
+@with_setup(capture.start, capture.stop)
+def test_argument_existing():
+    args = ['-h']
+    try:
+        SkalApp(
+            args={
+                '-b': {'help': 'bool argument', 'action': 'store_true'},
+                ('-s', '--string'): {'help': 'string argument with long name'}
+            },
+            command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    arg = '-b'
+    assert arg in capture.stdout.getvalue(), (
+        'help should list argument "%s"' % arg)
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_doc():
+    # TODO: fix this test
+    args = ['-h']
+    try:
+        SkalApp(
+            args={
+                '-b': {'help': 'bool argument', 'action': 'store_true'},
+                ('-s', '--string'): {'help': 'string argument with long name'}
+            },
+            command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    arg = '-b'
+    doc = 'bool argument'
+    assert doc in capture.stdout.getvalue(), (
+        'help string for "%s" should be "%s"' % (arg, doc))
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_value_bool():
+    value = 'b'
+    args = ['-b', 'first']
+    try:
+        SkalApp(
+            args={
+                '-b': {'help': 'bool argument', 'action': 'store_true'},
+                ('-s', '--string'): {'help': 'string argument with long name'}
+            },
+            command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value)
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_value_string():
+    value = 'test'
+    args = ['--string=' + value, 'first']
+    try:
+        SkalApp(
+            args={
+                '-b': {'help': 'bool argument', 'action': 'store_true'},
+                ('-s', '--string'): {'help': 'string argument with long name'}
+            },
+            command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value)
+
+
+@with_setup(capture.start, capture.stop)
+def test_argument_value_bool_and_string():
+    value1 = 'b'
+    value2 = 'test'
+    args = ['-b', '--string=' + value2, 'first']
+    try:
+        SkalApp(
+            args={
+                '-b': {'help': 'bool argument', 'action': 'store_true'},
+                ('-s', '--string'): {'help': 'string argument with long name'}
+            },
+            command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert value1 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value1)
+    assert value2 in capture.stdout.getvalue(), (
+        'output should contain "%s"' % value2)
+
+
 # Command tests
 
 @with_setup(capture.start, capture.stop)

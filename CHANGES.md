@@ -5,6 +5,14 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.10
+-------------
+
+Released on October 2nd 2012
+
+- Added ability to send global args with the constructor
+
+
 Version 0.1.9
 -------------
 

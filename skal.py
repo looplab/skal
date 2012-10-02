@@ -35,6 +35,7 @@ class SkalApp(object):
     def __init__(self,
                  description=None,
                  version=None,
+                 args=None,
                  command_modules=[],
                  subcommand_modules=[]):
         """Creates the argparser using metadata from decorators
@@ -75,6 +76,10 @@ class SkalApp(object):
         if version:
             self.__parser.add_argument('--version', action='version',
                                        version=('%(prog)s v' + version))
+
+        # Add global args
+        if args:
+            _add_arguments(args, self.__parser)
 
         # Sub class
         if hasattr(self.__class__, '__args__'):
@@ -155,7 +160,10 @@ def _add_arguments(args, parser):
             if type(full) == str:
                 arg.append(full)
         options = args[k]
-        parser.add_argument(*arg, **options)
+        try:
+            parser.add_argument(*arg, **options)
+        except argparse.ArgumentError as e:
+            sys.stderr.write('Warning: argument error: %s\n' % e)
 
 
 def _add_command(function, parent):
