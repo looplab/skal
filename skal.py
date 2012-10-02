@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.9'
+__version__ = '0.1.10'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
