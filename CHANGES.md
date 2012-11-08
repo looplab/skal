@@ -5,6 +5,14 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.11
+-------------
+
+Released on November 8nd 2012
+
+- Fixes a bug where ImportErrors in modules are captured as a Skal error
+
+
 Version 0.1.10
 -------------
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 __project_url__ = 'https://github.com/looplab/skal'
 
 
@@ -202,9 +202,16 @@ def _import_module(name):
     fromlist = [mod] if mod else []
     try:
         module = __import__(name, fromlist=fromlist)
-    except ImportError:
-        sys.stderr.write(
-            'Warning: module "%s" does not exist, skipping\n' % name)
+    except ImportError as e:
+        # sys.stderr.write(sys.last_traceback)
+        # sys.stderr.write(sys.last_type)
+        # sys.stderr.write(sys.last_value)
+        if e.message.split(' ')[3] == name:
+            sys.stderr.write(
+                'Warning: module "%s" does not exist, skipping\n' % name)
+        else:
+            sys.stderr.write('Warning: error in "%s", skipping\n' % name)
+            sys.stderr.write(traceback.format_exc())
     except SyntaxError:
         sys.stderr.write('Warning: error in "%s", skipping\n' % name)
         sys.stderr.write(traceback.format_exc())

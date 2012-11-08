@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from nose.tools import raises, with_setup
+from nose.tools import with_setup
 import inspect
 from helpers import OutputCapture
 import skalclass
@@ -199,11 +199,13 @@ def test_command_existing():
         'output should contain "%s"' % value)
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_non_existing():
     args = ['other']
-    TestApp().run(args)
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
 
 
 @with_setup(capture.start, capture.stop)
@@ -229,11 +231,13 @@ def test_command_no_doc():
         'there should be a warning about missing documentation')
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_without_decorator():
     args = ['second']
-    TestApp().run(args)
+    try:
+        TestApp().run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
 
 
 # Command argument tests

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from nose.tools import raises, with_setup
+from nose.tools import with_setup
 import inspect
 from helpers import OutputCapture
 from skal import SkalApp
@@ -192,11 +192,15 @@ def test_command_existing():
         'output should contain "%s"' % value)
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_non_existing():
     args = ['other']
-    SkalApp(command_modules=[module]).run(args)
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
+    assert 'ImportError' not in capture.stderr.getvalue(), (
+        'output should not contain ImportError')
 
 
 @with_setup(capture.start, capture.stop)
@@ -223,11 +227,13 @@ def test_command_no_doc():
         'there should be a warning about missing documentation')
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_command_without_decorator():
     args = ['second']
-    SkalApp(command_modules=[module]).run(args)
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
 
 
 @with_setup(capture.start, capture.stop)
@@ -241,6 +247,17 @@ def test_command_duplicate():
         'duplicate commands should print warning and be skipped')
     assert 'first command, second instance' not in capture.stdout.getvalue(), (
         'duplicate commands should not be added')
+
+
+@with_setup(capture.start, capture.stop)
+def test_command_import_error():
+    args = ['-h']
+    try:
+        SkalApp(command_modules=['skalmodule_importerror']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'ImportError' in capture.stderr.getvalue(), (
+        'output should contain ImportError')
 
 
 @with_setup(capture.start, capture.stop)
@@ -292,6 +309,17 @@ def test_subcommand_no_doc():
 
 
 @with_setup(capture.start, capture.stop)
+def test_subcommand_import_error():
+    args = ['-h']
+    try:
+        SkalApp(subcommand_modules=['skalmodule_importerror']).run(args)
+    except SystemExit as e:
+        assert e.code == 0, 'exit code should be 0'
+    assert 'ImportError' in capture.stderr.getvalue(), (
+        'output should contain ImportError')
+
+
+@with_setup(capture.start, capture.stop)
 def test_subcommand_syntax_error():
     args = ['-h']
     try:
@@ -322,11 +350,13 @@ def test_subcommand_command_existing():
         'output should contain "%s"' % value)
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_subcommand_command_non_existing():
     args = [module, 'other']
-    SkalApp(subcommand_modules=[module]).run(args)
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
 
 
 @with_setup(capture.start, capture.stop)
@@ -353,8 +383,10 @@ def test_subcommand_command_no_doc():
         'there should be a warning about missing documentation')
 
 
-@raises(SystemExit)
 @with_setup(capture.start, capture.stop)
 def test_subcommand_command_without_decorator():
     args = [module, 'second']
-    SkalApp(subcommand_modules=[module]).run(args)
+    try:
+        SkalApp(command_modules=[module]).run(args)
+    except SystemExit as e:
+        assert e.code != 0, 'exit code should not be 0'
