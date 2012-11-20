@@ -40,7 +40,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 2.6",
         "Topic :: Software Development :: User Interfaces",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
