@@ -32,6 +32,8 @@ setup(
     license = "Apache License 2.0",
     py_modules = ["skal"],
     install_requires = requirements,
+    tests_require=['nose'],
+    test_suite='nose.collector',
     classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",
