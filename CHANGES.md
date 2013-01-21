@@ -5,6 +5,14 @@ Skal follows the Semantic Versioning standard, although not for development
 before version 1. Read more at http://semvar.org
 
 
+Version 0.1.12
+-------------
+
+Released on January 21st 2013
+
+- Print error output in a clearer way
+
+
 Version 0.1.11
 -------------
 
