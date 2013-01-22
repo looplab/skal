@@ -13,10 +13,6 @@
 # limitations under the License.
 
 
-__version__ = '0.1.12'
-__project_url__ = 'https://github.com/looplab/skal'
-
-
 import sys
 import argparse
 import inspect
